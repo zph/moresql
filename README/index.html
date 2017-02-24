@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Readme - Moresql</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome-4.5.0.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/highlight.css">
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+	
+	<script src="../js/jquery-1.10.2.min.js"></script>
+        <script src="../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../js/highlight.pack.js"></script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="..">Moresql</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                    <li >
+                        <a href="..">Home</a>
+                    </li>
+                    <li class="active">
+                        <a href="./">Readme</a>
+                    </li>
+                    <li >
+                        <a href="../deploying/">Deploy</a>
+                    </li>
+                    <li >
+                        <a href="../TODO/">TODOs</a>
+                    </li>
+                    <li >
+                        <a href="../performance/">Performance</a>
+                    </li>
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                        <i class="fa fa-search"></i> Search
+                    </a>
+                </li>
+                    <li >
+                        <a rel="next" href="..">
+                            <i class="fa fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="prev" href="../deploying/">
+                            Next <i class="fa fa-arrow-right"></i>
+                        </a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#moresql">MoreSQL</a></li>
+        <li class="main "><a href="#warning-alpha-project">WARNING ALPHA project</a></li>
+            <li><a href="#introduction">Introduction</a></li>
+        <li class="main "><a href="#usage">Usage</a></li>
+            <li><a href="#basic-use">Basic Use</a></li>
+            <li><a href="#quickstart">QuickStart</a></li>
+        <li class="main "><a href="#requirements-stability-and-versioning">Requirements, Stability and Versioning</a></li>
+        <li class="main "><a href="#miscellanea">Miscellanea</a></li>
+            <li><a href="#error-reporting">Error Reporting</a></li>
+            <li><a href="#environmental-variables-used-in-moresql">Environmental Variables used in Moresql</a></li>
+            <li><a href="#mongo-types">Mongo types</a></li>
+            <li><a href="#converting-from-mosql">Converting from MoSQL</a></li>
+            <li><a href="#unsupported-features">Unsupported Features</a></li>
+            <li><a href="#performance">Performance</a></li>
+        <li class="main "><a href="#credit-and-prior-art">Credit and Prior Art</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="moresql">MoreSQL</h1>
+<p><a href="NOTE: README.md is a generated FILE changes belong in docs/README.template.md. Update with make docs"></a>
+<a href="https://travis-ci.org/zph/moresql"><img alt="Build Status" src="https://travis-ci.org/zph/moresql.svg?branch=master" /></a>
+<a href="https://godoc.org/github.com/zph/moresql"><img alt="GoDoc" src="https://godoc.org/github.com/zph/moresql?status.svg" /></a></p>
+<h1 id="warning-alpha-project">WARNING ALPHA project</h1>
+<p>Anything and everything can change (including git history can change at this point).</p>
+<p><em>This is a young project that implements a barebones set of the features in MoSQL. Assess the capability and stability before relying on it in production.</em></p>
+<p>Warning will be removed and git will stabilize after official release and announcement.</p>
+<h2 id="introduction">Introduction</h2>
+<p>MoreSQL streams changes occuring in Mongo database into a Postgres db. MoreSQL tails the oplog and generates appropriate actions against Postgres. MoreSQL has the ability to do full synchronizations using <code>UPSERTS</code>, with the benefit over <code>INSERTS</code> that this can be executed against tables with existing data.</p>
+<p>MoreSQL gives you a chance to use more sql and less mongo query language.</p>
+<h1 id="usage">Usage</h1>
+<h2 id="basic-use">Basic Use</h2>
+<h3 id="tail">Tail</h3>
+<p><code>./moresql -tail -config-file=moresql.json</code></p>
+<p>Tail is the primary run mode for MoreSQL. When tailing, the oplog is observed for novely and each INSERT/UPDATE/DELETE is translated to its SQL equivalent, then executed against Postgres.</p>
+<p>Tail makes a best faith effort to do this and does not use checkpoint markers to track position in the oplog. It may be introduced in later releases. Or we could introduce a way to split MoreSQL into a producer (oplog tail) that puts records onto stream (Kinesis/Kafka/etc) and a consumer that reads from the stream. By doing so, we'd avoid re-implmenting checkpoints in MoreSQL.</p>
+<p>Given that <code>tail</code> mode executes <code>UPSERTS</code> instead of <code>INSERT || UPDATE</code>, we expect MoreSQL to be roughly eventually consistent. We're chosing to prioritize speed of execution (multiple workers) in lieu of some consistency. This helps to keep low latency with larger workloads.</p>
+<h3 id="full-sync">Full Sync</h3>
+<p><code>./moresql -full-sync -config-file=moresql.json</code></p>
+<p>Full sync is useful when first setting up a MoreSQL installation to port the existing Mongo data to Postgres. We recommend setting up a tailing instance first. Once that's running, do a full sync in different process. This should put the Mongo and Postgres into identical states.</p>
+<p>Given the nature of streaming replica data from Mongo -&gt; Postgres, it's recommended to run full sync at intervals in order to offset losses that may have occured during network issues, system downtime, etc.</p>
+<h3 id="documentation">Documentation</h3>
+<p>https://zph.github.io/moresql/</p>
+<p><a href="https://godoc.org/github.com/zph/moresql"><img alt="GoDoc" src="https://godoc.org/github.com/zph/moresql?status.svg" /></a></p>
+<h2 id="quickstart">QuickStart</h2>
+<h3 id="introduction_1">Introduction</h3>
+<ul>
+<li>Create metadata table</li>
+<li>Setup moresql.json</li>
+<li>Setup any recipient tables in postgres</li>
+<li>Validate with <code>./moresql -validate</code></li>
+<li>Deploy binary to server</li>
+<li>Configure Environmental variables</li>
+<li>Run <code>./moresql -tail</code> to start transmitting novelty</li>
+<li>Run <code>./moresql -full-sync</code> to populate the database</li>
+</ul>
+<h3 id="table-setup">Table Setup</h3>
+<pre><code class="sql">-- Execute the following SQL to setup table in Postgres. Replace $USERNAME with the moresql user.
+-- create the moresql_metadata table for checkpoint persistance
+CREATE TABLE public.moresql_metadata
+(
+    app_name TEXT NOT NULL,
+    last_epoch INT NOT NULL,
+    processed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+-- Setup mandatory unique index
+CREATE UNIQUE INDEX moresql_metadata_app_name_uindex ON public.moresql_metadata (app_name);
+
+-- Grant permissions to this user, replace $USERNAME with moresql's user
+GRANT SELECT, UPDATE, DELETE ON TABLE public.moresql_metadata TO $USERNAME;
+
+COMMENT ON COLUMN public.moresql_metadata.app_name IS 'Name of application. Used for circumstances where multiple apps stream to same PG instance.';
+COMMENT ON COLUMN public.moresql_metadata.last_epoch IS 'Most recent epoch processed from Mongo';
+COMMENT ON COLUMN public.moresql_metadata.processed_at IS 'Timestamp for when the last epoch was processed at';
+COMMENT ON TABLE public.moresql_metadata IS 'Stores checkpoint data for MoreSQL (mongo-&gt;pg) streaming';
+</code></pre>
+
+<h3 id="building-binary">Building Binary</h3>
+<p>Compile binary using <code>make build</code></p>
+<h3 id="commandline-arguments-usage">Commandline Arguments / Usage</h3>
+<p>Execute <code>./moresql --help</code></p>
+<pre><code>./bin/moresql
+Repo https://github.com/zph/moresql
+Usage of ./bin/moresql:
+  -allow-deletes
+     Allow deletes to propagate from Mongo -&gt; PG (default true)
+  -app-name string
+     AppName used in Checkpoint table (default &quot;moresql&quot;)
+  -checkpoint
+     Store and restore from checkpoints in PG table: moresql_metadata
+  -config-file string
+     Configuration file to use (default &quot;moresql.json&quot;)
+  -create-table-sql
+     Print out the necessary SQL for creating metadata table required for checkpointing
+  -enable-monitor
+     Run expvarmon endpoint
+  -error-reporting string
+     Error reporting tool to use (currently only supporting Rollbar)
+  -full-sync
+     Run full sync for each db.collection in config
+  -memprofile string
+     Profile memory usage. Supply filename for output of memory usage
+  -mongo-url MONGO_URL
+     MONGO_URL aka connection string
+  -postgres-url POSTGRES_URL
+     POSTGRES_URL aka connection string
+  -replay-duration duration
+     Last x to replay ie '1s', '5m', etc as parsed by Time.ParseDuration. Will be subtracted from time.Now()
+  -ssl-cert string
+     SSL PEM cert for Mongodb
+  -tail
+     Tail mongodb for each db.collection in config
+  -validate
+     Validate the postgres table structures and exit
+</code></pre>
+
+<h3 id="validation-of-configuration-postgres-schema">Validation of Configuration + Postgres Schema</h3>
+<p><code>./moresql -validate</code></p>
+<p>This will report any issues related to the postgres schema being a mis-match for the fields and tables setup in configuration.</p>
+<h1 id="requirements-stability-and-versioning">Requirements, Stability and Versioning</h1>
+<p>MoreSQL is expected and built with Golang 1.6, 1.7 and master in mind. Broken tests on these versions indicates a bug.</p>
+<p>MoreSQL requires Postgres 9.5+ due to usage of UPSERTs. Using UPSERTs simplifies internal logic but also depends on UNIQUE indexes existing on each <code>_id</code> column in Postgres. See <code>moresql -validate</code> for advice.</p>
+<h1 id="miscellanea">Miscellanea</h1>
+<h3 id="error-reporting">Error Reporting</h3>
+<p>Available through Rollbar. PRs welcome for other services. We currently use Rollus
+which reports errors synchronously. If this is a performance bottleneck please PR or issue.</p>
+<p>Enable this by two steps:</p>
+<pre><code>export ERROR_REPORTING_TOKEN=asdfasdfasdf
+export APP_ENV=[production, development, or staging]
+</code></pre>
+
+<p>And when running application use the following flag to enable reporting:</p>
+<p><code>./moresql -tail -error-reporting "rollbar"</code></p>
+<p>If these steps are not followed, errors will be reported out solely via logging.</p>
+<h3 id="environmental-variables-used-in-moresql">Environmental Variables used in Moresql</h3>
+<pre><code>MONGO_URL
+POSTGRES_URL
+ERROR_REPORTING_TOKEN
+APP_ENV
+DYNO
+LOG_LEVEL
+</code></pre>
+
+<h3 id="mongo-types">Mongo types</h3>
+<p>We guard against a few of these for conversion into Postgres friendly types.</p>
+<p>Objects and Arrays do not behave properly when inserting into Postgres. These will be automatically converted into their JSON representation before inserting into Postgres.</p>
+<p>As of writing, any BsonID/ObjectId should be noted as <code>id</code> type in <code>Fields.Mongo.Type</code> to facilitate this. In the future we may assume that all fields ending in <code>_id</code> are Id based fields and require conversion.</p>
+<h2 id="converting-from-mosql">Converting from MoSQL</h2>
+<p>Run the ./bin/convert_config_from_mosql_to_moresql script in a folder with <code>collections.yml</code></p>
+<pre><code>ruby ./bin/convert_config_from_mosql_to_moresql collection.yml
+</code></pre>
+
+<p>The generated file <code>moresql.json</code> will be in place ready for use.</p>
+<h2 id="unsupported-features">Unsupported Features</h2>
+<p>These features are part of mosql but not implemented in MoreSQL. PRs welcome.</p>
+<ul>
+<li>Dot Notation for nested structures</li>
+<li>extra_props field for spare data</li>
+<li>Automatic creation of tables/columns</li>
+</ul>
+<h2 id="performance">Performance</h2>
+<p>During benchmarking when moresql is asked to replay existing events from oplog we've seen the following performance with the following configurations:</p>
+<p>5 workers per collection
+500 generic workers
+On a Heroku 1X dyno</p>
+<pre><code>~ $ ./moresql -tail -replay-duration &quot;5000m&quot; | grep &quot;Rate of&quot;
+{&quot;level&quot;:&quot;info&quot;,&quot;msg&quot;:&quot;Rate of insert per min: 532&quot;,&quot;time&quot;:&quot;2017-02-23T01:49:31Z&quot;}
+{&quot;level&quot;:&quot;info&quot;,&quot;msg&quot;:&quot;Rate of update per min: 44089&quot;,&quot;time&quot;:&quot;2017-02-23T01:49:31Z&quot;}
+{&quot;level&quot;:&quot;info&quot;,&quot;msg&quot;:&quot;Rate of delete per min: 1&quot;,&quot;time&quot;:&quot;2017-02-23T01:49:31Z&quot;}
+{&quot;level&quot;:&quot;info&quot;,&quot;msg&quot;:&quot;Rate of read per min: 91209&quot;,&quot;time&quot;:&quot;2017-02-23T01:49:31Z&quot;}
+{&quot;level&quot;:&quot;info&quot;,&quot;msg&quot;:&quot;Rate of skipped per min: 46587&quot;,&quot;time&quot;:&quot;2017-02-23T01:49:31Z&quot;}
+</code></pre>
+
+<p>Approximately 700 updates/sec and 1500 reads/sec is our top observed throughput so far. Please submit PRs with further numbers using a similar command.</p>
+<p>We expect the following bottlenecks: connection count in Postgres, pg connection limitations in Moresql (for safety), network bandwidth, worker availability.</p>
+<p>At this level of throughput, Moresql uses ~90MB RAM. At low idle throughput of 10-20 req/sec it consumes ~30MB RAM.</p>
+<p>In another benchmark when updating 28k documents simultaneously, we observed mean lag of ~ 500ms and 95% of requests arrived in &lt;= 1194ms between when the document was updated in Mongo and when it arrived in Postgres.</p>
+<p>See full <a href="https://zph.github.io/moresql/performance/">performance information</a></p>
+<h1 id="credit-and-prior-art">Credit and Prior Art</h1>
+<ul>
+<li><a href="https://github.com/stripe/mosql">MoSQL</a> - the project we used for 3 yrs at work and then retired with MoreSQL. Thanks Stripe!</li>
+<li><a href="https://github.com/rwynn/gtm">GTM</a> - the go library that builds on mgo to wrap the tailing and oplog interface in a pleasant API. rwynn was a large help with improving GTM's performance with varying levels of consistency guarantees.</li>
+</ul></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>var base_url = '..';</script>
+        <script data-main="../mkdocs/js/search.js" src="../mkdocs/js/require.js"></script>
+        <script src="../js/base.js"></script><div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
