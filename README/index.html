@@ -264,6 +264,7 @@ On a Heroku 1X dyno</p>
 <p>At this level of throughput, Moresql uses ~90MB RAM. At low idle throughput of 10-20 req/sec it consumes ~30MB RAM.</p>
 <p>In another benchmark when updating 28k documents simultaneously, we observed mean lag of ~ 500ms and 95% of requests arrived in &lt;= 1194ms between when the document was updated in Mongo and when it arrived in Postgres.</p>
 <p>See full <a href="https://zph.github.io/moresql/performance/">performance information</a></p>
+<p>For a general discussion of UPSERT performance in Postgres: https://mark.zealey.org/2016/01/08/how-we-tweaked-postgres-upsert-performance-to-be-2-3-faster-than-mongodb</p>
 <h1 id="credit-and-prior-art">Credit and Prior Art</h1>
 <ul>
 <li><a href="https://github.com/stripe/mosql">MoSQL</a> - the project we used for 3 yrs at work and then retired with MoreSQL. Thanks Stripe!</li>
