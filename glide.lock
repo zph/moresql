@@ -1,0 +1,45 @@
+hash: d5f12632710db648413d1409539aed7ce7ce19cd9980b2d0d9963057a8a5b046
+updated: 2017-02-22T13:51:55.07232751-08:00
+imports:
+- name: github.com/heroku/rollrus
+  version: d20e35b8f9139110607856dfedda27df7b598c08
+- name: github.com/jmoiron/sqlx
+  version: cac998c4f0959c19c638c523e374fa8e4e0bcfe3
+  subpackages:
+  - reflectx
+- name: github.com/lib/pq
+  version: ee1442bda7bd1b6a84e913bdb421cb1874ec629d
+  subpackages:
+  - oid
+- name: github.com/orcaman/concurrent-map
+  version: cafb9879460a25a99fb372b86aa5ca94a9ac8ce1
+- name: github.com/paulbellamy/ratecounter
+  version: 348ad3bf08f04afb2b4f645a6587c9372c06a684
+- name: github.com/pkg/errors
+  version: 248dadf4e9068a0b3e79f02ed0a610d935de5302
+- name: github.com/rwynn/gtm
+  version: 6cf4c1bdfabb42016672ab20352a9bad40e68598
+- name: github.com/serialx/hashring
+  version: 8d1c83b82963c5644493764c3b589c8bfff8090b
+- name: github.com/Sirupsen/logrus
+  version: f3cfb454f4c209e6668c95216c4744b8fddb2356
+- name: github.com/stvp/roll
+  version: ca202b60b2601abe3e2e6a948a12b1b856badf6c
+- name: github.com/thejerf/suture
+  version: fe1c0d795ff7a7e54fc54ef6afb36ee0adf0c276
+- name: golang.org/x/sys
+  version: d75a52659825e75fff6158388dddc6a5b04f9ba5
+  subpackages:
+  - unix
+- name: gopkg.in/check.v1
+  version: 20d25e2804050c1cd24a7eea1e7a6447dd0e74ec
+- name: gopkg.in/mgo.v2
+  version: 3f83fa5005286a7fe593b055f0d7771a7dce4655
+  subpackages:
+  - bson
+  - internal/json
+  - internal/sasl
+  - internal/scram
+- name: gopkg.in/yaml.v2
+  version: a5b47d31c556af34a302ce5d659e6fea44d90de0
+testImports: []

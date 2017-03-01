@@ -1,0 +1,7 @@
+site_name: Moresql
+pages:
+  - Home: index.md
+  - Readme: README.md
+  - Deploy: deploying.md
+  - TODOs: TODO.md
+  - Performance: performance.html

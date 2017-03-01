@@ -1,0 +1,10 @@
+debug
+bin/moresql
+tmp
+resources
+bin
+moresql.json
+moresql-*
+moresql
+dist/
+site/

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Ensure current build
+make build
+
+# Requires envsubst, OSX instructions:
+# brew install gettext
+# brew link --force gettext
+export LOG_LEVEL=fatal
+MORESQL_USAGE="$(./bin/moresql 2>&1 | tr "\t" "  " | sed '/^Version.*$/d')"
+SQL_OUTPUT="$(./bin/moresql -create-table-sql 2>&1 | tr "\t" " ")"
+GO_ENVS="$(grep os.Getenv *.go | grep -Eo '\(".*"\)' | tr -d '"()')"
+MORESQL_VERSION=$(git describe --abbrev=0 --tags --always) MORESQL_USAGE="$MORESQL_USAGE" SQL_OUTPUT="$SQL_OUTPUT" ENV_VARIABLES_FROM_GO="$GO_ENVS" envsubst < docs/README.template.md > README.md

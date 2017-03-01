@@ -1,0 +1,19 @@
+# goreleaser.yml
+build:
+  # Path to main.go file.
+  # Default is `main.go`
+  main: ./cmds/moresql/main.go
+
+  # Name of the binary. Default is the name of the project directory.
+  binary_name: moresql
+
+  # Custom ldflags.
+  # Default is `-s -w`
+  ldflags: -s -w
+
+  # GOOS list to build in.
+  # For more info refer to https://golang.org/doc/install/source#environment
+  # Defaults are darwin and linux
+  goos:
+    - darwin
+    - linux
