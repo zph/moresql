@@ -17,3 +17,10 @@ build:
   goos:
     - darwin
     - linux
+
+archive:
+  name_template: "{{.BinaryName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
+
+  replacements:
+    darwin: darwin
+    linux: linux
