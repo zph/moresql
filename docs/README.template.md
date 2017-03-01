@@ -170,6 +170,10 @@ See full [performance information](https://zph.github.io/moresql/performance/)
 
 For a general discussion of UPSERT performance in Postgres: https://mark.zealey.org/2016/01/08/how-we-tweaked-postgres-upsert-performance-to-be-2-3-faster-than-mongodb
 
+## Binaries
+
+We release binaries for semvar tags on Github Releases page using `goreleaser` for the platforms listed in goreleaser.yml.
+
 # Credit and Prior Art
 
  * [MoSQL](https://github.com/stripe/mosql) - the project we used for 3 yrs at work and then retired with MoreSQL. Thanks Stripe!
