@@ -19,7 +19,7 @@ build:
     - linux
 
 archive:
-  name_template: "{{.BinaryName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
+  name_template: "{{.BinaryName}}_{{.Os}}_{{.Arch}}"
 
   replacements:
     darwin: darwin
