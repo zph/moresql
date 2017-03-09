@@ -117,7 +117,7 @@ func FetchMetadata(checkpoint bool, pg *sqlx.DB, appName string) MoresqlMetadata
 		err := pg.Get(&metadata, q.GetMetadata(), appName)
 		// No rows means this is first time with table
 		if err != nil && err != sql.ErrNoRows {
-			log.Printf("Error while reading moresql_metadata table %+v", err)
+			log.Errorf("Error while reading moresql_metadata table %+v", err)
 			c := Commands{}
 			c.CreateTableSQL()
 		}
@@ -197,7 +197,7 @@ func (t *Tailer) SaveCheckpoint(m MoresqlMetadata) error {
 	q := Queries{}
 	result, err := t.pg.NamedExec(q.SaveMetadata(), m)
 	if err != nil {
-		log.Warnf("Unable to save into moresql_metadata: %+v, %+v", result, err.Error())
+		log.Errorf("Unable to save into moresql_metadata: %+v, %+v", result, err.Error())
 	}
 	return err
 }

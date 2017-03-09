@@ -273,6 +273,7 @@ func (c *Commands) ValidateTablesAndColumns(config Config, pg *sqlx.DB) {
 	} else {
 		log.Printf("Validation succeeded. Postgres tables look good.")
 	}
+	os.Exit(0)
 }
 
 type Mongo struct {
