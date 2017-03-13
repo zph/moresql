@@ -51,14 +51,14 @@ func GetMongoConnection(env Env) (session *mgo.Session) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		session.SetMode(mgo.Monotonic, true)
+		session.SetMode(mgo.Primary, true)
 	} else {
 		var err error
 		session, err = mgo.Dial(env.urls.mongo)
 		if err != nil {
 			log.Fatal(err)
 		}
-		session.SetMode(mgo.Monotonic, true)
+		session.SetMode(mgo.Primary, true)
 	}
 	return
 }
