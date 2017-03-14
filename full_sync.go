@@ -69,7 +69,7 @@ func BuildOpFromMgo(mongoFields []string, e DBResult, coll Collection) *gtm.Op {
 	// Set to I so we are consistent about these beings inserts
 	// This avoids our guardclause in sanitize
 	opRef.Operation = "i"
-	data := SanitizeData(coll.Fields, opRef).Data
+	data := SanitizeData(coll.Fields, opRef)
 	opRef.Data = data
 	return opRef
 }

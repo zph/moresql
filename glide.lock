@@ -1,5 +1,5 @@
-hash: d5f12632710db648413d1409539aed7ce7ce19cd9980b2d0d9963057a8a5b046
-updated: 2017-02-22T13:51:55.07232751-08:00
+hash: 7c1b1a6000e2b61feddf82acca659ccba885425cefa1cebe02567e5a69a06e8a
+updated: 2017-03-14T14:05:08.867280193-07:00
 imports:
 - name: github.com/heroku/rollrus
   version: d20e35b8f9139110607856dfedda27df7b598c08
@@ -16,9 +16,9 @@ imports:
 - name: github.com/paulbellamy/ratecounter
   version: 348ad3bf08f04afb2b4f645a6587c9372c06a684
 - name: github.com/pkg/errors
-  version: 248dadf4e9068a0b3e79f02ed0a610d935de5302
+  version: bfd5150e4e41705ded2129ec33379de1cb90b513
 - name: github.com/rwynn/gtm
-  version: 6cf4c1bdfabb42016672ab20352a9bad40e68598
+  version: e400ebf9f055864f277fcb1471f851a4c112b603
 - name: github.com/serialx/hashring
   version: 8d1c83b82963c5644493764c3b589c8bfff8090b
 - name: github.com/Sirupsen/logrus

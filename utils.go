@@ -115,46 +115,47 @@ func isActionableOperation(filters ...func() bool) bool {
 }
 
 // SanitizeData handles type inconsistency between mongo and pg
-func SanitizeData(pgFields Fields, op *gtm.Op) *gtm.Op {
+func SanitizeData(pgFields Fields, op *gtm.Op) map[string]interface{} {
 	if !IsInsertUpdateDelete(op) {
-		return op
+		return make(map[string]interface{})
 	}
 
+	newData := op.Data
 	// Normalize data map to always include the Id with conversion
 	if op.Id != nil {
-		op.Data["_id"] = op.Id
+		newData["_id"] = op.Id
 	}
 	for k, v := range pgFields {
 		// Guard against nil values sneaking into dataset
-		if v.Mongo.Type == "id" && op.Data[k] != nil {
-			op.Data[k] = op.Data[k].(bson.ObjectId).Hex()
-		} else if sym, ok := op.Data[k].(bson.ObjectId); ok {
-			op.Data[k] = sym.Hex()
-		} else if sym, ok := op.Data[k].(bson.Symbol); ok {
+		if v.Mongo.Type == "id" && newData[k] != nil {
+			newData[k] = newData[k].(bson.ObjectId).Hex()
+		} else if sym, ok := newData[k].(bson.ObjectId); ok {
+			newData[k] = sym.Hex()
+		} else if sym, ok := newData[k].(bson.Symbol); ok {
 			// Handle bson.Symbols which are unknown types for SQL driver
-			op.Data[k] = string(sym)
-		} else if sym, ok := op.Data[k].(map[string]interface{}); ok {
+			newData[k] = string(sym)
+		} else if sym, ok := newData[k].(map[string]interface{}); ok {
 			// Convert hashes to json strings
 			js, err := json.Marshal(sym)
 			if err == nil {
-				op.Data[k] = js
+				newData[k] = js
 			}
-		} else if sym, ok := op.Data[k].([]interface{}); ok {
+		} else if sym, ok := newData[k].([]interface{}); ok {
 			// Convert array objects to json strings
 			js, err := json.Marshal(sym)
 			if err == nil {
-				op.Data[k] = js
+				newData[k] = js
 			}
 		} else if v.Mongo.Type == "object" {
 			// Convert objects to json strings
 			// TODO: deprecate this since we type check elsewhere
-			js, err := json.Marshal(op.Data[k])
+			js, err := json.Marshal(newData[k])
 			if err == nil {
-				op.Data[k] = js
+				newData[k] = js
 			}
 		}
 	}
-	return op
+	return newData
 }
 
 func createFanKey(db string, collection string) string {
