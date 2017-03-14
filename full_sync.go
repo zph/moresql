@@ -56,9 +56,9 @@ func (z *FullSyncer) Write() {
 	var workers [workerCountOverflow]int
 	tables := z.buildTables()
 	for _ = range workers {
+		wg.Add(1)
 		go z.writer(&tables)
 	}
-	wg.Done()
 }
 
 func BuildOpFromMgo(mongoFields []string, e DBResult, coll Collection) *gtm.Op {
@@ -75,7 +75,6 @@ func BuildOpFromMgo(mongoFields []string, e DBResult, coll Collection) *gtm.Op {
 }
 
 func (z *FullSyncer) writer(tables *cmap.ConcurrentMap) {
-	wg.Add(1)
 ForStatement:
 	for {
 		select {

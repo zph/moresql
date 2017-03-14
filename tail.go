@@ -130,7 +130,14 @@ func FetchMetadata(checkpoint bool, pg *sqlx.DB, appName string) MoresqlMetadata
 
 func (t *Tailer) Read() {
 	metadata := FetchMetadata(t.env.checkpoint, t.pg, t.env.appName)
-	options, err := t.NewOptions(EpochTimestamp(metadata.LastEpoch), t.env.replayDuration)
+
+	var lastEpoch int64
+	if t.env.replaySecond != 0 {
+		lastEpoch = int64(t.env.replaySecond)
+	} else {
+		lastEpoch = metadata.LastEpoch
+	}
+	options, err := t.NewOptions(EpochTimestamp(lastEpoch), t.env.replayDuration)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -142,7 +149,7 @@ func (t *Tailer) Read() {
 			case <-t.stop:
 				return
 			case err := <-errs:
-				log.Errorln(err)
+				log.Errorf("Failure in errors from gtm: %s", err)
 			case op := <-ops:
 				t.counters.read.Incr(1)
 				log.WithFields(log.Fields{

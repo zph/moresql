@@ -66,10 +66,10 @@ func GetMongoConnection(env Env) (session *mgo.Session) {
 func GetPostgresConnection(env Env) (pg *sqlx.DB) {
 	var err error
 	pg, err = sqlx.Connect("postgres", env.urls.postgres)
-	setupPgDefaults(pg)
 	if err != nil {
 		log.Fatal(err)
 	}
+	setupPgDefaults(pg)
 	return
 }
 

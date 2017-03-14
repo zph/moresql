@@ -35,13 +35,14 @@ func FetchEnvsAndFlags() (e Env) {
 	flag.StringVar(&e.memprofile, "memprofile", "", "Profile memory usage. Supply filename for output of memory usage")
 	defaultDuration := time.Duration(0 * time.Second)
 	flag.DurationVar(&e.replayDuration, "replay-duration", defaultDuration, "Last x to replay ie '1s', '5m', etc as parsed by Time.ParseDuration. Will be subtracted from time.Now()")
+	flag.Int64Var(&e.replaySecond, "replay-second", 0, "Replay a specific epoch second of the oplog and forward from there.")
 	flag.Parse()
 	e.reportingToken = os.Getenv("ERROR_REPORTING_TOKEN")
 	e.appEnvironment = os.Getenv("APP_ENV")
 	if e.appEnvironment == "" {
 		e.appEnvironment = "production"
 	}
-	if e.replayDuration != defaultDuration {
+	if e.replayDuration != defaultDuration && e.replaySecond != 0 {
 		e.replayOplog = true
 	} else {
 		e.replayOplog = false
@@ -189,7 +190,7 @@ func ExitUnlessValidEnv(e Env) {
 		c.CreateTableSQL()
 	}
 	if e.urls.mongo == "" || e.urls.postgres == "" {
-		log.Infof(`Missing required variable. Both MONGO_URL and POSTGRES_URL must be set.
+		log.Warnf(`Missing required variable. Both MONGO_URL and POSTGRES_URL must be set.
 		            See the following usage instructions for setting those variables.`)
 		flag.Usage()
 		os.Exit(1)

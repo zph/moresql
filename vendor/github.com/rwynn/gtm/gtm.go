@@ -2,12 +2,14 @@ package gtm
 
 import (
 	"fmt"
-	"github.com/serialx/hashring"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/orcaman/concurrent-map"
+	"github.com/serialx/hashring"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var seekChan = make(chan bson.MongoTimestamp, 1)
