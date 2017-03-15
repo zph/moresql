@@ -1,5 +1,5 @@
-hash: 7c1b1a6000e2b61feddf82acca659ccba885425cefa1cebe02567e5a69a06e8a
-updated: 2017-03-14T14:05:08.867280193-07:00
+hash: cb4fec5ae3935dc94a5a2d6c446d0196001a33ca025e9a4e0c836ddd09602b37
+updated: 2017-03-15T11:09:18.0426687-07:00
 imports:
 - name: github.com/heroku/rollrus
   version: d20e35b8f9139110607856dfedda27df7b598c08
@@ -18,7 +18,7 @@ imports:
 - name: github.com/pkg/errors
   version: bfd5150e4e41705ded2129ec33379de1cb90b513
 - name: github.com/rwynn/gtm
-  version: e400ebf9f055864f277fcb1471f851a4c112b603
+  version: 22eec696103260d143b92a08ef06b45173c072a2
 - name: github.com/serialx/hashring
   version: 8d1c83b82963c5644493764c3b589c8bfff8090b
 - name: github.com/Sirupsen/logrus

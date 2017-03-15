@@ -164,14 +164,6 @@ func (t *Tailer) Read() {
 				if c := t.fan[key]; c != nil {
 					collection := t.config[db].Collections[coll]
 					o := Statement{collection}
-					// Make copy to avoid situation where op has reference to shared underlying .Data map
-					// Otherwise we run into errors with concurrent read/write map access
-					newData := make(map[string]interface{})
-					for k, v := range op.Data {
-						newData[k] = v
-					}
-					log.WithField("operation data", newData).Debug("Received from GTM")
-					op.Data = newData
 					c <- EnsureOpHasAllFields(op, o.mongoFields())
 				} else {
 					t.counters.skipped.Incr(1)

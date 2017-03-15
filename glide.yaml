@@ -15,7 +15,7 @@ import:
 - package: github.com/paulbellamy/ratecounter
   version: 348ad3bf08f04afb2b4f645a6587c9372c06a684
 - package: github.com/rwynn/gtm
-  version: e400ebf9f055864f277fcb1471f851a4c112b603
+  version: 22eec696103260d143b92a08ef06b45173c072a2
 - package: golang.org/x/sys
   version: d75a52659825e75fff6158388dddc6a5b04f9ba5
   subpackages:
