@@ -51,14 +51,14 @@ func GetMongoConnection(env Env) (session *mgo.Session) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		session.SetMode(mgo.Monotonic, true)
+		session.SetMode(mgo.Primary, true)
 	} else {
 		var err error
 		session, err = mgo.Dial(env.urls.mongo)
 		if err != nil {
 			log.Fatal(err)
 		}
-		session.SetMode(mgo.Monotonic, true)
+		session.SetMode(mgo.Primary, true)
 	}
 	return
 }
@@ -66,10 +66,10 @@ func GetMongoConnection(env Env) (session *mgo.Session) {
 func GetPostgresConnection(env Env) (pg *sqlx.DB) {
 	var err error
 	pg, err = sqlx.Connect("postgres", env.urls.postgres)
-	setupPgDefaults(pg)
 	if err != nil {
 		log.Fatal(err)
 	}
+	setupPgDefaults(pg)
 	return
 }
 

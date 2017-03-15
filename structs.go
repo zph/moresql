@@ -41,6 +41,7 @@ type Env struct {
 	monitor          bool
 	replayOplog      bool
 	replayDuration   time.Duration
+	replaySecond     int64
 	checkpoint       bool
 	appName          string
 	createTableSQL   bool
@@ -270,9 +271,8 @@ func (c *Commands) ValidateTablesAndColumns(config Config, pg *sqlx.DB) {
 			fmt.Printf("%s\n", v.Solution)
 		}
 		os.Exit(1)
-	} else {
-		log.Printf("Validation succeeded. Postgres tables look good.")
 	}
+	log.Printf("Validation succeeded. Postgres tables look good.")
 	os.Exit(0)
 }
 

@@ -7,13 +7,9 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
-
-var seekChan = make(chan bson.MongoTimestamp, 1)
-var pauseChan = make(chan bool, 1)
-var resumeChan = make(chan bool, 1)
-var paused bool = false
 
 type OrderingGuarantee int
 
@@ -34,6 +30,10 @@ type Options struct {
 	BufferDuration      time.Duration
 	Ordering            OrderingGuarantee
 	WorkerCount         int
+	UpdateDataAsDelta   bool
+	DirectReadNs        []string
+	DirectReadersPerCol int
+	DirectReadLimit     int
 }
 
 type Op struct {
@@ -69,22 +69,42 @@ type OpBuf struct {
 	FlushTicker    *time.Ticker
 }
 
-func Since(ts bson.MongoTimestamp) {
-	seekChan <- ts
+type OpCtx struct {
+	OpC          OpChan
+	ErrC         chan error
+	DirectReadWg *sync.WaitGroup
+	routines     int
+	stopC        chan bool
+	allWg        *sync.WaitGroup
+	seekC        chan bson.MongoTimestamp
+	pauseC       chan bool
+	resumeC      chan bool
+	paused       bool
 }
 
-func Pause() {
-	if !paused {
-		paused = true
-		pauseChan <- true
+func (ctx *OpCtx) Since(ts bson.MongoTimestamp) {
+	ctx.seekC <- ts
+}
+
+func (ctx *OpCtx) Pause() {
+	if !ctx.paused {
+		ctx.paused = true
+		ctx.pauseC <- true
 	}
 }
 
-func Resume() {
-	if paused {
-		paused = false
-		resumeChan <- true
+func (ctx *OpCtx) Resume() {
+	if ctx.paused {
+		ctx.paused = false
+		ctx.resumeC <- true
 	}
+}
+
+func (ctx *OpCtx) Stop() {
+	for i := 1; i <= ctx.routines; i++ {
+		ctx.stopC <- true
+	}
+	ctx.allWg.Wait()
 }
 
 func ChainOpFilters(filters ...OpFilter) OpFilter {
@@ -172,19 +192,18 @@ func (this *OpBuf) IsFull() bool {
 	return len(this.Entries) >= this.BufferSize
 }
 
-func (this *OpBuf) Flush(session *mgo.Session, outOp OpChan, outErr chan error) {
+func (this *OpBuf) Flush(session *mgo.Session, ctx *OpCtx) {
 	if len(this.Entries) == 0 {
 		return
 	}
 	ns := make(map[string][]interface{})
-	byId := make(map[interface{}]*Op)
+	byId := make(map[interface{}][]*Op)
 	for _, op := range this.Entries {
-		if op.IsDelete() || op.IsCommand() {
-			continue
+		if op.IsUpdate() {
+			idKey := fmt.Sprintf("%s.%v", op.Namespace, op.Id)
+			ns[op.Namespace] = append(ns[op.Namespace], op.Id)
+			byId[idKey] = append(byId[idKey], op)
 		}
-		idKey := fmt.Sprintf("%s.%v", op.Namespace, op.Id)
-		ns[op.Namespace] = append(ns[op.Namespace], op.Id)
-		byId[idKey] = op
 	}
 	for n, opIds := range ns {
 		var parts = strings.SplitN(n, ".", 2)
@@ -196,21 +215,31 @@ func (this *OpBuf) Flush(session *mgo.Session, outOp OpChan, outErr chan error) 
 		if err == nil {
 			for _, result := range results {
 				resultId := fmt.Sprintf("%s.%v", n, result["_id"])
-				if mapped, ok := byId[resultId]; ok {
-					mapped.Data = result
+				if ops, ok := byId[resultId]; ok {
+					if len(ops) == 1 {
+						ops[0].Data = result
+					} else {
+						for _, o := range ops {
+							data := make(map[string]interface{})
+							for k, v := range result {
+								data[k] = v
+							}
+							o.Data = data
+						}
+					}
 				}
 			}
 		} else {
-			outErr <- err
+			ctx.ErrC <- err
 		}
 	}
 	for _, op := range this.Entries {
-		outOp <- op
+		ctx.OpC <- op
 	}
 	this.Entries = nil
 }
 
-func (this *Op) ParseLogEntry(entry OpLogEntry) (include bool) {
+func (this *Op) ParseLogEntry(entry OpLogEntry, options *Options) (include bool) {
 	this.Operation = entry["op"].(string)
 	this.Timestamp = entry["ts"].(bson.MongoTimestamp)
 	this.Namespace = entry["ns"].(string)
@@ -222,6 +251,11 @@ func (this *Op) ParseLogEntry(entry OpLogEntry) (include bool) {
 			objectField = entry["o"].(OpLogEntry)
 		}
 		this.Id = objectField["_id"]
+		if this.IsInsert() {
+			this.Data = objectField
+		} else if this.IsUpdate() && options.UpdateDataAsDelta {
+			this.Data = entry["o"].(OpLogEntry)
+		}
 		include = true
 	} else if this.IsCommand() {
 		this.Data = entry["o"].(OpLogEntry)
@@ -253,7 +287,7 @@ func OpLogCollectionName(session *mgo.Session, options *Options) string {
 		}
 	} else {
 		msg := fmt.Sprintf(`Unable to get collection names 
-				for database %v`, *options.OpLogDatabaseName)
+		for database %v: %s`, *options.OpLogDatabaseName, err)
 		panic(msg)
 	}
 }
@@ -277,36 +311,19 @@ func LastOpTimestamp(session *mgo.Session, options *Options) bson.MongoTimestamp
 }
 
 func GetOpLogQuery(session *mgo.Session, after bson.MongoTimestamp, options *Options) *mgo.Query {
-	query := bson.M{"ts": bson.M{"$gt": after}}
+	query := bson.M{"ts": bson.M{"$gt": after}, "fromMigrate": bson.M{"$exists": false}}
 	collection := OpLogCollection(session, options)
 	return collection.Find(query).LogReplay().Sort("$natural")
 }
 
-func FillEmptyOptions(session *mgo.Session, options *Options) {
-	if options.After == nil {
-		options.After = LastOpTimestamp
-	}
-	if options.OpLogDatabaseName == nil {
-		defaultOpLogDatabaseName := "local"
-		options.OpLogDatabaseName = &defaultOpLogDatabaseName
-	}
-	if options.OpLogCollectionName == nil {
-		defaultOpLogCollectionName := OpLogCollectionName(session, options)
-		options.OpLogCollectionName = &defaultOpLogCollectionName
-	}
-	if options.CursorTimeout == nil {
-		defaultCursorTimeout := "100s"
-		options.CursorTimeout = &defaultCursorTimeout
-	}
-}
-
-func TailOps(session *mgo.Session, channels []OpChan, errChan chan error, options *Options) error {
+func TailOps(ctx *OpCtx, session *mgo.Session, channels []OpChan, options *Options) error {
+	defer ctx.allWg.Done()
 	s := session.Copy()
 	defer s.Close()
-	FillEmptyOptions(s, options)
+	options.Fill(s)
 	duration, err := time.ParseDuration(*options.CursorTimeout)
 	if err != nil {
-		panic("Invalid value for CursorTimeout")
+		panic(fmt.Sprintf("Invalid value <%s> for CursorTimeout", *options.CursorTimeout))
 	}
 	currTimestamp := options.After(s, options)
 	iter := GetOpLogQuery(s, currTimestamp, options).Tail(duration)
@@ -315,24 +332,32 @@ func TailOps(session *mgo.Session, channels []OpChan, errChan chan error, option
 	Seek:
 		for iter.Next(entry) {
 			op := &Op{"", "", "", nil, bson.MongoTimestamp(0)}
-			if op.ParseLogEntry(entry) {
+			if op.ParseLogEntry(entry, options) {
 				if options.Filter == nil || options.Filter(op) {
-					for _, channel := range channels {
-						channel <- op
+					if options.UpdateDataAsDelta {
+						ctx.OpC <- op
+					} else {
+						// broadcast to fetch channels
+						for _, channel := range channels {
+							channel <- op
+						}
 					}
 				}
 			}
 			select {
-			case ts := <-seekChan:
+			case <-ctx.stopC:
+				return nil
+			case ts := <-ctx.seekC:
 				currTimestamp = ts
 				break Seek
-			case <-pauseChan:
-				<-resumeChan
+			case <-ctx.pauseC:
+				<-ctx.resumeC
 				select {
-				case ts := <-seekChan:
+				case <-ctx.stopC:
+					return nil
+				case ts := <-ctx.seekC:
 					currTimestamp = ts
 					break Seek
-
 				default:
 					currTimestamp = op.Timestamp
 				}
@@ -341,17 +366,19 @@ func TailOps(session *mgo.Session, channels []OpChan, errChan chan error, option
 			}
 		}
 		if err = iter.Close(); err != nil {
-			errChan <- err
+			ctx.ErrC <- err
 			return err
 		}
 		if iter.Timeout() {
 			select {
-			case ts := <-seekChan:
+			case <-ctx.stopC:
+				return nil
+			case ts := <-ctx.seekC:
 				currTimestamp = ts
-			case <-pauseChan:
-				<-resumeChan
+			case <-ctx.pauseC:
+				<-ctx.resumeC
 				select {
-				case ts := <-seekChan:
+				case ts := <-ctx.seekC:
 					currTimestamp = ts
 				default:
 					continue
@@ -365,21 +392,74 @@ func TailOps(session *mgo.Session, channels []OpChan, errChan chan error, option
 	return nil
 }
 
-func FetchDocuments(session *mgo.Session, filter OpFilter, buf *OpBuf, inOp OpChan, inErr chan error,
-	outOp OpChan, outErr chan error) error {
+func DirectRead(ctx *OpCtx, session *mgo.Session, idx int, ns string, options *Options) (err error) {
+	defer ctx.allWg.Done()
+	defer ctx.DirectReadWg.Done()
+	s := session.Copy()
+	defer s.Close()
+	skip, limit := idx*options.DirectReadLimit, options.DirectReadLimit
+	dbCol := strings.SplitN(ns, ".", 2)
+	if len(dbCol) != 2 {
+		err = fmt.Errorf("Invalid direct read ns: %s :expecting db.collection", ns)
+		ctx.ErrC <- err
+		return
+	}
+	db, col := dbCol[0], dbCol[1]
+	c := s.DB(db).C(col)
+	for {
+		var results []map[string]interface{}
+		if err = c.Find(nil).Skip(skip).Limit(limit).Sort("$natural").All(&results); err != nil {
+			ctx.ErrC <- err
+			break
+		}
+		count := len(results)
+		if count == 0 {
+			break
+		}
+		for _, result := range results {
+			op := &Op{
+				Id:        result["_id"],
+				Operation: "i",
+				Namespace: ns,
+				Data:      result,
+			}
+			switch op.Id.(type) {
+			case bson.ObjectId:
+				// set timestamp based on id
+				t := op.Id.(bson.ObjectId).Time().UTC().Unix()
+				op.Timestamp = bson.MongoTimestamp(t << 32)
+			}
+			ctx.OpC <- op
+		}
+		if count < limit {
+			break
+		}
+		skip = skip + (limit * options.DirectReadersPerCol)
+		select {
+		case <-ctx.stopC:
+			return nil
+		default:
+			continue
+		}
+	}
+	return
+}
+
+func FetchDocuments(ctx *OpCtx, session *mgo.Session, filter OpFilter, buf *OpBuf, inOp OpChan) error {
+	defer ctx.allWg.Done()
 	s := session.Copy()
 	defer s.Close()
 	for {
 		select {
-		case err := <-inErr:
-			outErr <- err
+		case <-ctx.stopC:
+			return nil
 		case <-buf.FlushTicker.C:
-			buf.Flush(s, outOp, outErr)
+			buf.Flush(s, ctx)
 		case op := <-inOp:
 			if filter(op) {
 				buf.Append(op)
 				if buf.IsFull() {
-					buf.Flush(s, outOp, outErr)
+					buf.Flush(s, ctx)
 					buf.FlushTicker.Stop()
 					buf.FlushTicker = time.NewTicker(buf.BufferDuration)
 				}
@@ -429,11 +509,33 @@ func DefaultOptions() *Options {
 		OpLogDatabaseName:   nil,
 		OpLogCollectionName: nil,
 		CursorTimeout:       nil,
-		ChannelSize:         20,
+		ChannelSize:         512,
 		BufferSize:          50,
 		BufferDuration:      time.Duration(750) * time.Millisecond,
 		Ordering:            Oplog,
 		WorkerCount:         1,
+		UpdateDataAsDelta:   false,
+		DirectReadNs:        []string{},
+		DirectReadLimit:     100,
+		DirectReadersPerCol: 3,
+	}
+}
+
+func (this *Options) Fill(session *mgo.Session) {
+	if this.After == nil {
+		this.After = LastOpTimestamp
+	}
+	if this.OpLogDatabaseName == nil {
+		defaultOpLogDatabaseName := "local"
+		this.OpLogDatabaseName = &defaultOpLogDatabaseName
+	}
+	if this.OpLogCollectionName == nil {
+		defaultOpLogCollectionName := OpLogCollectionName(session, this)
+		this.OpLogCollectionName = &defaultOpLogCollectionName
+	}
+	if this.CursorTimeout == nil {
+		defaultCursorTimeout := "100s"
+		this.CursorTimeout = &defaultCursorTimeout
 	}
 }
 
@@ -454,27 +556,61 @@ func (this *Options) SetDefaults() {
 	if this.WorkerCount < 1 {
 		this.WorkerCount = 1
 	}
+	if this.UpdateDataAsDelta {
+		this.Ordering = Oplog
+		this.WorkerCount = 0
+	}
+	if this.DirectReadLimit == 0 {
+		this.DirectReadLimit = defaultOpts.DirectReadLimit
+	}
+	if this.DirectReadersPerCol == 0 {
+		this.DirectReadersPerCol = defaultOpts.DirectReadersPerCol
+	}
 }
 
 func Tail(session *mgo.Session, options *Options) (OpChan, chan error) {
+	ctx := Start(session, options)
+	return ctx.OpC, ctx.ErrC
+}
+
+func Start(session *mgo.Session, options *Options) *OpCtx {
 	if options == nil {
 		options = DefaultOptions()
 	} else {
 		options.SetDefaults()
 	}
 
-	inErr := make(chan error, options.ChannelSize)
-	outErr := make(chan error, options.ChannelSize)
-	outOp := make(OpChan, options.ChannelSize)
+	routines := options.WorkerCount + (len(options.DirectReadNs) * options.DirectReadersPerCol) + 1
+	stopC := make(chan bool, routines)
+	errC := make(chan error, options.ChannelSize)
+	opC := make(OpChan, options.ChannelSize)
 
 	var inOps []OpChan
 	var workerNames []string
+	var directReadWg sync.WaitGroup
+	var allWg sync.WaitGroup
+	var seekC = make(chan bson.MongoTimestamp, 1)
+	var pauseC = make(chan bool, 1)
+	var resumeC = make(chan bool, 1)
+
+	ctx := &OpCtx{
+		OpC:          opC,
+		ErrC:         errC,
+		DirectReadWg: &directReadWg,
+		routines:     routines,
+		stopC:        stopC,
+		allWg:        &allWg,
+		pauseC:       pauseC,
+		resumeC:      resumeC,
+		seekC:        seekC,
+	}
 
 	for i := 1; i <= options.WorkerCount; i++ {
 		workerNames = append(workerNames, strconv.Itoa(i))
 	}
 
 	for i := 1; i <= options.WorkerCount; i++ {
+		allWg.Add(1)
 		inOp := make(OpChan, options.ChannelSize)
 		inOps = append(inOps, inOp)
 		buf := &OpBuf{
@@ -484,10 +620,19 @@ func Tail(session *mgo.Session, options *Options) (OpChan, chan error) {
 		}
 		worker := strconv.Itoa(i)
 		filter := OpFilterForOrdering(options.Ordering, workerNames, worker)
-		go FetchDocuments(session, filter, buf, inOp, inErr, outOp, outErr)
+		go FetchDocuments(ctx, session, filter, buf, inOp)
 	}
 
-	go TailOps(session, inOps, inErr, options)
+	for _, ns := range options.DirectReadNs {
+		for i := 0; i < options.DirectReadersPerCol; i++ {
+			directReadWg.Add(1)
+			allWg.Add(1)
+			go DirectRead(ctx, session, i, ns, options)
+		}
+	}
 
-	return outOp, outErr
+	allWg.Add(1)
+	go TailOps(ctx, session, inOps, options)
+
+	return ctx
 }

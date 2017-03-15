@@ -34,6 +34,7 @@ func Run() {
 	pg := GetPostgresConnection(env)
 	defer pg.Close()
 
+	// TODO: should this run for each execution of application
 	if env.validatePostgres {
 		c.ValidateTablesAndColumns(config, pg)
 	}
