@@ -59,6 +59,7 @@ func (z *FullSyncer) Write() {
 		wg.Add(1)
 		go z.writer(&tables)
 	}
+	wg.Done()
 }
 
 func BuildOpFromMgo(mongoFields []string, e DBResult, coll Collection) *gtm.Op {
