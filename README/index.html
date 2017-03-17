@@ -87,7 +87,6 @@
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#moresql">MoreSQL</a></li>
-        <li class="main "><a href="#warning-alpha-project">WARNING ALPHA project</a></li>
             <li><a href="#introduction">Introduction</a></li>
         <li class="main "><a href="#usage">Usage</a></li>
             <li><a href="#basic-use">Basic Use</a></li>
@@ -100,6 +99,7 @@
             <li><a href="#converting-from-mosql">Converting from MoSQL</a></li>
             <li><a href="#unsupported-features">Unsupported Features</a></li>
             <li><a href="#performance">Performance</a></li>
+            <li><a href="#binaries">Binaries</a></li>
         <li class="main "><a href="#credit-and-prior-art">Credit and Prior Art</a></li>
     </ul>
 </div></div>
@@ -109,10 +109,6 @@
 <p><a href="NOTE: README.md is a generated FILE changes belong in docs/README.template.md. Update with make docs"></a>
 <a href="https://travis-ci.org/zph/moresql"><img alt="Build Status" src="https://travis-ci.org/zph/moresql.svg?branch=master" /></a>
 <a href="https://godoc.org/github.com/zph/moresql"><img alt="GoDoc" src="https://godoc.org/github.com/zph/moresql?status.svg" /></a></p>
-<h1 id="warning-alpha-project">WARNING ALPHA project</h1>
-<p>Anything and everything can change (including git history can change at this point).</p>
-<p><em>This is a young project that implements a barebones set of the features in MoSQL. Assess the capability and stability before relying on it in production.</em></p>
-<p>Warning will be removed and git will stabilize after official release and announcement.</p>
 <h2 id="introduction">Introduction</h2>
 <p>MoreSQL streams changes occuring in Mongo database into a Postgres db. MoreSQL tails the oplog and generates appropriate actions against Postgres. MoreSQL has the ability to do full synchronizations using <code>UPSERTS</code>, with the benefit over <code>INSERTS</code> that this can be executed against tables with existing data.</p>
 <p>MoreSQL gives you a chance to use more sql and less mongo query language.</p>
@@ -194,6 +190,8 @@ Usage of ./bin/moresql:
      POSTGRES_URL aka connection string
   -replay-duration duration
      Last x to replay ie '1s', '5m', etc as parsed by Time.ParseDuration. Will be subtracted from time.Now()
+  -replay-second int
+     Replay a specific epoch second of the oplog and forward from there.
   -ssl-cert string
      SSL PEM cert for Mongodb
   -tail
@@ -265,6 +263,8 @@ On a Heroku 1X dyno</p>
 <p>In another benchmark when updating 28k documents simultaneously, we observed mean lag of ~ 500ms and 95% of requests arrived in &lt;= 1194ms between when the document was updated in Mongo and when it arrived in Postgres.</p>
 <p>See full <a href="https://zph.github.io/moresql/performance/">performance information</a></p>
 <p>For a general discussion of UPSERT performance in Postgres: https://mark.zealey.org/2016/01/08/how-we-tweaked-postgres-upsert-performance-to-be-2-3-faster-than-mongodb</p>
+<h2 id="binaries">Binaries</h2>
+<p>We release binaries for semvar tags on Github Releases page using <code>goreleaser</code> for the platforms listed in goreleaser.yml.</p>
 <h1 id="credit-and-prior-art">Credit and Prior Art</h1>
 <ul>
 <li><a href="https://github.com/stripe/mosql">MoSQL</a> - the project we used for 3 yrs at work and then retired with MoreSQL. Thanks Stripe!</li>
