@@ -1,6 +1,5 @@
 # MoreSQL
 
-[](NOTE: README.md is a generated FILE changes belong in docs/README.template.md. Update with make docs)
 [![Build Status](https://travis-ci.org/zph/moresql.svg?branch=master)](https://travis-ci.org/zph/moresql)
 [![GoDoc](https://godoc.org/github.com/zph/moresql?status.svg)](https://godoc.org/github.com/zph/moresql)
 
