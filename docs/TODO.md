@@ -12,9 +12,9 @@ TO DEPLOY and RELEASE
 * [x] Add starter SQL script for checkpointing script
 * [x] Add validation cmdline flag to compare configuration with PG tables/columns
 * [x] Add documentation for deploying on Heroku via null buildpack
-* [ ] Verify that log statements are set at appropriate levels, ie warn/error/etc
-* [ ] Test in staging, then production
-* [ ] Bake binary in production
+* [x] Verify that log statements are set at appropriate levels, ie warn/error/etc
+* [x] Test in staging, then production
+* [x] Bake binary in production
 * [ ] Release and announce project to the world
 
 
