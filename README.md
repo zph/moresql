@@ -4,14 +4,6 @@
 [![Build Status](https://travis-ci.org/zph/moresql.svg?branch=master)](https://travis-ci.org/zph/moresql)
 [![GoDoc](https://godoc.org/github.com/zph/moresql?status.svg)](https://godoc.org/github.com/zph/moresql)
 
-# WARNING ALPHA project
-
-Anything and everything can change (including git history can change at this point).
-
-*This is a young project that implements a barebones set of the features in MoSQL. Assess the capability and stability before relying on it in production.*
-
-Warning will be removed and git will stabilize after official release and announcement.
-
 ## Introduction
 
 MoreSQL streams changes occuring in Mongo database into a Postgres db. MoreSQL tails the oplog and generates appropriate actions against Postgres. MoreSQL has the ability to do full synchronizations using `UPSERTS`, with the benefit over `INSERTS` that this can be executed against tables with existing data.
@@ -118,6 +110,8 @@ Usage of ./bin/moresql:
      POSTGRES_URL aka connection string
   -replay-duration duration
      Last x to replay ie '1s', '5m', etc as parsed by Time.ParseDuration. Will be subtracted from time.Now()
+  -replay-second int
+     Replay a specific epoch second of the oplog and forward from there.
   -ssl-cert string
      SSL PEM cert for Mongodb
   -tail
