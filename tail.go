@@ -12,7 +12,10 @@ import (
 	"github.com/orcaman/concurrent-map"
 	"github.com/paulbellamy/ratecounter"
 	"github.com/rwynn/gtm"
+	"github.com/serialx/hashring"
 	"github.com/thejerf/suture"
+
+	"strconv"
 
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -40,7 +43,7 @@ func (t *Tailer) Stop() {
 
 func (t *Tailer) startOverflowConsumers(c <-chan *gtm.Op) {
 	for i := 1; i <= workerCountOverflow; i++ {
-		go t.consumer(c, nil)
+		go t.consumer(strconv.Itoa(i), c, nil)
 	}
 }
 
@@ -85,17 +88,44 @@ func (t *Tailer) NewFan() map[string]gtm.OpChan {
 	return fan
 }
 
+func consistentBroker(in gtm.OpChan, ring *hashring.HashRing, workerPool map[string]gtm.OpChan) {
+	for {
+		select {
+		case op := <-in:
+			node, ok := ring.GetNode(fmt.Sprintf("%s", op.Id))
+			if !ok {
+				log.Error("Failed at getting worker node from hashring")
+			} else {
+				out := workerPool[node]
+				out <- op
+			}
+		}
+	}
+}
+
 func (t *Tailer) startDedicatedConsumers(fan map[string]gtm.OpChan, overflow gtm.OpChan) {
 	// Reserved workers for individual channels
 	for k, c := range fan {
+		workerPool := make(map[string]gtm.OpChan)
 		var workers [workerCount]int
+		for i := range workers {
+			o := make(gtm.OpChan)
+			workerPool[strconv.Itoa(i)] = o
+		}
+		keys := []string{}
+		for k := range workerPool {
+			keys = append(keys, k)
+		}
+		ring := hashring.New(keys)
+		wg.Add(1)
+		go consistentBroker(c, ring, workerPool)
+		for k, workerChan := range workerPool {
+			go t.consumer(k, workerChan, overflow)
+		}
 		log.WithFields(log.Fields{
 			"count":      workerCount,
 			"collection": k,
 		}).Debug("Starting worker(s)")
-		for _ = range workers {
-			go t.consumer(c, overflow)
-		}
 	}
 }
 
@@ -285,7 +315,7 @@ func (t *Tailer) MsLag(epoch int32, nowFunc func() time.Time) int64 {
 	return nanoToMillisecond(d)
 }
 
-func (t *Tailer) consumer(in <-chan *gtm.Op, overflow chan<- *gtm.Op) {
+func (t *Tailer) consumer(id string, in <-chan *gtm.Op, overflow chan<- *gtm.Op) {
 	var workerType string
 	if overflow != nil {
 		workerType = "Dedicated"
