@@ -36,6 +36,7 @@ func FetchEnvsAndFlags() (e Env) {
 	defaultDuration := time.Duration(0 * time.Second)
 	flag.DurationVar(&e.replayDuration, "replay-duration", defaultDuration, "Last x to replay ie '1s', '5m', etc as parsed by Time.ParseDuration. Will be subtracted from time.Now()")
 	flag.Int64Var(&e.replaySecond, "replay-second", 0, "Replay a specific epoch second of the oplog and forward from there.")
+	flag.BoolVar(&e.SSLInsecureSkipVerify, "ssl-insecure-skip-verify", false, "Skip verification of Mongo SSL certificate ala sslAllowInvalidCertificates")
 	flag.Parse()
 	e.reportingToken = os.Getenv("ERROR_REPORTING_TOKEN")
 	e.appEnvironment = os.Getenv("APP_ENV")

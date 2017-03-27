@@ -20,17 +20,23 @@ import (
 
 func GetMongoConnection(env Env) (session *mgo.Session) {
 	if env.UseSSL() {
-		clientCert, err := ioutil.ReadFile(env.SSLCert)
-		if err != nil {
-			log.Fatalln("Unable to read ssl certificate")
-		}
-		roots := x509.NewCertPool()
-		ok := roots.AppendCertsFromPEM([]byte(clientCert))
-		if !ok {
-			log.Fatalln("failed to parse root certificate")
-		}
+		var tlsConfig *tls.Config
+		if env.SSLCert != "" {
+			// Certificate Provided
+			clientCert, err := ioutil.ReadFile(env.SSLCert)
+			if err != nil {
+				log.Fatalln("Unable to read ssl certificate")
+			}
+			roots := x509.NewCertPool()
+			ok := roots.AppendCertsFromPEM([]byte(clientCert))
+			if !ok {
+				log.Fatalln("failed to parse root certificate")
+			}
 
-		tlsConfig := &tls.Config{RootCAs: roots}
+			tlsConfig = &tls.Config{RootCAs: roots}
+		} else if env.SSLInsecureSkipVerify {
+			tlsConfig = &tls.Config{InsecureSkipVerify: true}
+		}
 
 		c, err := mgo.ParseURL(env.urls.mongo)
 		if err != nil {

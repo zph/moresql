@@ -32,29 +32,30 @@ type urls struct {
 }
 
 type Env struct {
-	urls             urls
-	sync             bool
-	tail             bool
-	SSLCert          string
-	configFile       string
-	allowDeletes     bool
-	monitor          bool
-	replayOplog      bool
-	replayDuration   time.Duration
-	replaySecond     int64
-	checkpoint       bool
-	appName          string
-	createTableSQL   bool
-	validatePostgres bool
-	reportingToken   string
-	appEnvironment   string
-	errorReporting   string
-	memprofile       string
+	urls                  urls
+	sync                  bool
+	tail                  bool
+	SSLCert               string
+	SSLInsecureSkipVerify bool
+	configFile            string
+	allowDeletes          bool
+	monitor               bool
+	replayOplog           bool
+	replayDuration        time.Duration
+	replaySecond          int64
+	checkpoint            bool
+	appName               string
+	createTableSQL        bool
+	validatePostgres      bool
+	reportingToken        string
+	appEnvironment        string
+	errorReporting        string
+	memprofile            string
 }
 
 func (e *Env) UseSSL() (r bool) {
 	r = false
-	if e.SSLCert != "" {
+	if e.SSLCert != "" || e.SSLInsecureSkipVerify {
 		r = true
 	}
 	return
