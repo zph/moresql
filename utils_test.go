@@ -17,12 +17,11 @@ func (s *MySuite) TestSanitizeData(c *C) {
 	withNonPrimaryKeyResult := map[string]interface{}{"name": "Alice", "location_id": "313233"}
 	var table = []struct {
 		op     *gtm.Op
-		result *gtm.Op
+		result map[string]interface{}
 	}{
-		{&gtm.Op{Operation: "c"}, &gtm.Op{Operation: "c"}},
-		{&gtm.Op{Operation: "i", Data: withBson}, &gtm.Op{Operation: "i", Data: withBsonResult}},
-		{&gtm.Op{Operation: "i", Data: withSymbol}, &gtm.Op{Operation: "i", Data: withSymbolResult}},
-		{&gtm.Op{Operation: "i", Data: withNonPrimaryKey}, &gtm.Op{Operation: "i", Data: withNonPrimaryKeyResult}},
+		{&gtm.Op{Operation: "i", Data: withBson}, withBsonResult},
+		{&gtm.Op{Operation: "i", Data: withSymbol}, withSymbolResult},
+		{&gtm.Op{Operation: "i", Data: withNonPrimaryKey}, withNonPrimaryKeyResult},
 	}
 	for _, t := range table {
 		actual := m.SanitizeData(BuildFields("_id", "name", "age", "location_id"), t.op)
