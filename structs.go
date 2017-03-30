@@ -314,7 +314,7 @@ type CollectionDelayed struct {
 }
 
 func (c Collection) pgTableQuoted() string {
-	return fmt.Sprintf(`"%s"`, c.Name)
+	return fmt.Sprintf(`"%s"`, c.PgTable)
 }
 
 type DBDelayed struct {
