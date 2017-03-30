@@ -23,12 +23,12 @@ func (s *MySuite) TestBuildUpsertStatement(c *C) {
 	fields := m.Fields{"_id": f, "count": f2}
 	collection := m.Collection{
 		Name:    "categories",
-		PgTable: "categories",
+		PgTable: "categories_in_pg",
 		Fields:  fields}
 	o := m.Statement{collection}
 
 	sql := o.BuildUpsert()
-	expected := `INSERT INTO "categories" ("id", "count")
+	expected := `INSERT INTO "categories_in_pg" ("id", "count")
 VALUES (:_id, :count)
 ON CONFLICT ("id")
 DO UPDATE SET "count" = :count;`
