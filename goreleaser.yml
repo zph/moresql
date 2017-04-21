@@ -5,7 +5,7 @@ build:
   main: ./cmds/moresql/main.go
 
   # Name of the binary. Default is the name of the project directory.
-  binary_name: moresql
+  binary: moresql
 
   # Custom ldflags.
   # Default is `-s -w`
