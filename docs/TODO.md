@@ -20,6 +20,7 @@ TO DEPLOY and RELEASE
 
 DESIRED
 ==
+* [ ] Use dot notation for config description of nested maps, ie allow for `get_in("outerkey", "innerkey")` as `outerkey.innerkey` by using https://github.com/tidwall/gjson
 * [ ] Improve library testing (unit and integration/system). Potentially using docker for full trip integration tests.
 * [x] Refactor tail to have a producer/consumer as Read/Write
 * [x] Setup https://github.com/thejerf/suture wrappers on components
@@ -28,6 +29,7 @@ DESIRED
 * [x] Setup formal worker pool along with overflow pool of workers
 * [x] add tracking mechanism for missing/broken tables beyond "log it into abyss".
 * [x] add error handling with rollbar/bugsnag/etc
+
 
 SOMEDAYs
 ==
