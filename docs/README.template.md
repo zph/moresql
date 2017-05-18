@@ -20,9 +20,9 @@ MoreSQL gives you a chance to use more sql and less mongo query language.
 
 Tail is the primary run mode for MoreSQL. When tailing, the oplog is observed for novely and each INSERT/UPDATE/DELETE is translated to its SQL equivalent, then executed against Postgres.
 
-Tail makes a best faith effort to do this and does not use checkpoint markers to track position in the oplog. It may be introduced in later releases. Or we could introduce a way to split MoreSQL into a producer (oplog tail) that puts records onto stream (Kinesis/Kafka/etc) and a consumer that reads from the stream. By doing so, we'd avoid re-implmenting checkpoints in MoreSQL.
+Tail makes a best faith effort to do this and uses checkpoint markers to track last successfully applied Mongo Oplog event.
 
-Given that `tail` mode executes `UPSERTS` instead of `INSERT || UPDATE`, we expect MoreSQL to be roughly eventually consistent. We're chosing to prioritize speed of execution (multiple workers) in lieu of some consistency. This helps to keep low latency with larger workloads.
+Given that `tail` mode executes `UPSERTS` instead of `INSERT || UPDATE`, we expect MoreSQL to be roughly eventually consistent. We're chosing to prioritize speed of execution (multiple workers) in lieu of some consistency. This helps to keep low latency with larger workloads. We currently partition workload among multiple workers but ensure that each `collection.id` combination will be routed to same worker in correct oplog order. This avoids the circumstance where two operations against same `collection.id` are executed by different workers, out of order.
 
 ### Full Sync
 
