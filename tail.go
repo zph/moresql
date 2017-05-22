@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"expvar"
 	"fmt"
-	"regexp"
 
 	"time"
 
@@ -180,12 +179,7 @@ func (t *Tailer) Read() {
 			case <-t.stop:
 				return
 			case err := <-errs:
-				if matched, _ := regexp.MatchString("i/o timeout", err.Error()); matched {
-					log.Errorf("Problem connecting to mongo: %s", err.Error())
-					t.session.Refresh()
-				} else {
-					log.Fatalf("Exiting: Mongo tailer returned error %s", err.Error())
-				}
+				log.Fatalf("Exiting: Mongo tailer returned error %s", err.Error())
 			case op := <-ops:
 				t.counters.read.Incr(1)
 				log.WithFields(log.Fields{
