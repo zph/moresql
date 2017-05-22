@@ -179,7 +179,7 @@ func (t *Tailer) Read() {
 			case <-t.stop:
 				return
 			case err := <-errs:
-				log.Errorf("Failure in errors from gtm: %s", err)
+				log.Fatalf("Exiting: Mongo tailer returned error %s", err.Error())
 			case op := <-ops:
 				t.counters.read.Incr(1)
 				log.WithFields(log.Fields{
