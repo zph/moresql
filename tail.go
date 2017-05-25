@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"expvar"
 	"fmt"
+	"regexp"
 
 	"time"
 
@@ -158,6 +159,11 @@ func FetchMetadata(checkpoint bool, pg *sqlx.DB, appName string) MoresqlMetadata
 	return metadata
 }
 
+type gtmTail struct {
+	ops  gtm.OpChan
+	errs chan error
+}
+
 func (t *Tailer) Read() {
 	metadata := FetchMetadata(t.env.checkpoint, t.pg, t.env.appName)
 
@@ -172,15 +178,37 @@ func (t *Tailer) Read() {
 		log.Fatal(err.Error())
 	}
 	ops, errs := gtm.Tail(t.session, options)
+	g := gtmTail{ops, errs}
 	log.Info("Tailing mongo oplog")
 	go func() {
 		for {
 			select {
 			case <-t.stop:
 				return
-			case err := <-errs:
-				log.Fatalf("Exiting: Mongo tailer returned error %s", err.Error())
-			case op := <-ops:
+			case err := <-g.errs:
+				if matched, _ := regexp.MatchString("i/o timeout", err.Error()); matched {
+					// Restart gtm.Tail
+					// Close existing channels to not leak resources
+					log.Errorf("Problem connecting to mongo initiating reconnection: %s", err.Error())
+					close(g.ops)
+					close(g.errs)
+					latest, ok := t.checkpoint.Get("latest")
+					if ok && latest != nil {
+						metadata = latest.(MoresqlMetadata)
+						lastEpoch = metadata.LastEpoch
+						options, err := t.NewOptions(EpochTimestamp(lastEpoch), t.env.replayDuration)
+						if err != nil {
+							log.Fatal(err.Error())
+						}
+						ops, errs = gtm.Tail(t.session, options)
+						g = gtmTail{ops, errs}
+					} else {
+						log.Fatalf("Exiting: Unable to recover from %s", err.Error())
+					}
+				} else {
+					log.Fatalf("Exiting: Mongo tailer returned error %s", err.Error())
+				}
+			case op := <-g.ops:
 				t.counters.read.Incr(1)
 				log.WithFields(log.Fields{
 					"operation":  op.Operation,
