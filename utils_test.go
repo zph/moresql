@@ -27,6 +27,29 @@ func (s *MySuite) TestSanitizeData(c *C) {
 		actual := m.SanitizeData(BuildFields("_id", "name", "age", "location_id"), t.op)
 		c.Check(actual, DeepEquals, t.result)
 	}
+
+	// Test nested data structures
+	test1Mongo := m.Mongo{}
+	test1Postgres := m.Postgres{}
+	test1Mongo.Name = "name.first"
+	test1Postgres.Name = "name_first"
+	field := m.Field{}
+	field.Mongo = test1Mongo
+	field.Postgres = test1Postgres
+	nameFirst := m.Fields{"name.first": field}
+	singleNested := map[string]interface{}{"name": map[string]interface{}{"first": "John", "last": "Doe"}}
+	singleNestedResult := map[string]interface{}{"name_first": "John"}
+	var nested = []struct {
+		op     *gtm.Op
+		fields m.Fields
+		result map[string]interface{}
+	}{
+		{&gtm.Op{Operation: "i", Data: singleNested}, nameFirst, singleNestedResult},
+	}
+	for _, t := range nested {
+		actual := m.SanitizeData(t.fields, t.op)
+		c.Check(actual, DeepEquals, t.result)
+	}
 }
 
 func (s *MySuite) TestEnsureOpHasAllFieldsWhenEmpty(c *C) {

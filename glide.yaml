@@ -36,3 +36,4 @@ import:
 - package: github.com/heroku/rollrus
 - package: github.com/pkg/errors
 - package: github.com/stvp/roll
+- package: github.com/tidwall/gjson
