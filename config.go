@@ -23,8 +23,18 @@ func LoadConfigString(s string) (Config, error) {
 		db := DB{}
 		collections := Collections{}
 		db.Collections = collections
+		schemaDefault := "public"
 		for k, v := range v.Collections {
-			coll := Collection{Name: v.Name, PgTable: v.PgTable}
+			// TODO: fail through to correct schema
+			var schema string
+			if v.PgSchema == "" {
+				// Default fallback
+				schema = schemaDefault
+			} else {
+				schema = v.PgSchema
+			}
+
+			coll := Collection{Name: v.Name, PgSchema: schema, PgTable: v.PgTable}
 			var fields Fields
 			fields, err = JsonToFields(string(v.Fields))
 			if err != nil {

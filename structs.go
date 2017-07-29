@@ -215,7 +215,7 @@ func (c *Commands) ValidateTablesAndColumns(config Config, pg *sqlx.DB) {
 		for _, coll := range db.Collections {
 			table := coll.PgTable
 			// TODO: allow for non-public schema
-			schema := "public"
+			schema := coll.PgSchema
 			// Check that all columns are present
 			rows, err := pg.NamedQuery(q.GetColumnsFromTable(), map[string]interface{}{"schema": schema, "table": table})
 			if err != nil {
@@ -308,15 +308,17 @@ type FieldShorthand map[string]string
 type FieldsWrapper map[string]json.RawMessage
 
 type Collection struct {
-	Name    string `json:"name"`
-	PgTable string `json:"pg_table"`
-	Fields  Fields `json:"fields"`
+	Name     string `json:"name"`
+	PgTable  string `json:"pg_table"`
+	PgSchema string `json:"pg_schema"`
+	Fields   Fields `json:"fields"`
 }
 
 type CollectionDelayed struct {
-	Name    string          `json:"name"`
-	PgTable string          `json:"pg_table"`
-	Fields  json.RawMessage `json:"fields"`
+	Name     string          `json:"name"`
+	PgTable  string          `json:"pg_table"`
+	PgSchema string          `json:"pg_schema"`
+	Fields   json.RawMessage `json:"fields"`
 }
 
 func (c Collection) pgTableQuoted() string {
