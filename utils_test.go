@@ -10,11 +10,11 @@ import (
 func (s *MySuite) TestSanitizeData(c *C) {
 	bsonId := bson.ObjectId("123")
 	withBson := map[string]interface{}{"_id": bsonId}
-	withBsonResult := map[string]interface{}{"_id": "313233"}
+	withBsonResult := map[string]interface{}{"name": interface{}(nil), "age": interface{}(nil), "location_id": interface{}(nil), "_id": "313233"}
 	withSymbol := map[string]interface{}{"name": bson.Symbol("Alice")}
-	withSymbolResult := map[string]interface{}{"name": "Alice"}
+	withSymbolResult := map[string]interface{}{"age": interface{}(nil), "location_id": interface{}(nil), "_id": interface{}(nil), "name": "Alice"}
 	withNonPrimaryKey := map[string]interface{}{"name": "Alice", "location_id": bsonId}
-	withNonPrimaryKeyResult := map[string]interface{}{"name": "Alice", "location_id": "313233"}
+	withNonPrimaryKeyResult := map[string]interface{}{"_id": interface{}(nil), "name": "Alice", "age": interface{}(nil), "location_id": "313233"}
 	var table = []struct {
 		op     *gtm.Op
 		result map[string]interface{}
@@ -39,12 +39,23 @@ func (s *MySuite) TestSanitizeData(c *C) {
 	nameFirst := m.Fields{"name.first": field}
 	singleNested := map[string]interface{}{"name": map[string]interface{}{"first": "John", "last": "Doe"}}
 	singleNestedResult := map[string]interface{}{"name_first": "John"}
+	mResidential := m.Mongo{}
+	pResidential := m.Postgres{}
+	mResidential.Name = "address.home"
+	pResidential.Name = "address_home"
+	f := m.Field{}
+	f.Mongo = mResidential
+	f.Postgres = pResidential
+	address := m.Fields{"address.home": f}
+	stub := map[string]interface{}{"address": map[string]interface{}{"home": false}}
+	result := map[string]interface{}{"address_home": false}
 	var nested = []struct {
 		op     *gtm.Op
 		fields m.Fields
 		result map[string]interface{}
 	}{
 		{&gtm.Op{Operation: "i", Data: singleNested}, nameFirst, singleNestedResult},
+		{&gtm.Op{Operation: "i", Data: stub}, address, result},
 	}
 	for _, t := range nested {
 		actual := m.SanitizeData(t.fields, t.op)

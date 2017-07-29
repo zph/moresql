@@ -29,7 +29,7 @@ func (s *MySuite) TestBuildUpsertStatement(c *C) {
 
 	sql := o.BuildUpsert()
 	expected := `INSERT INTO "categories_in_pg" ("id", "count")
-VALUES (:_id, :count)
+VALUES (:id, :count)
 ON CONFLICT ("id")
 DO UPDATE SET "count" = :count;`
 	c.Check(sql, Equals, expected)
@@ -49,7 +49,7 @@ func (s *MySuite) TestBuildInsertStatement(c *C) {
 
 	sql := o.BuildInsert()
 	expected := `INSERT INTO "categories" ("id", "count")
-VALUES (:_id, :count)`
+VALUES (:id, :count)`
 	c.Check(sql, Equals, expected)
 }
 

@@ -138,10 +138,23 @@ func SanitizeData(pgFields Fields, op *gtm.Op) map[string]interface{} {
 		// Dot notation extraction
 		maybe := parsed.Get(k)
 		if !maybe.Exists() {
-			continue
+			// Fill with nils to ensure that NamedExec works
+			output[v.Postgres.Name] = nil
+		} else {
+			// Sanitize the Value field when it's a map
+			value := maybe.Value()
+			if _, ok := maybe.Value().(map[string]interface{}); ok {
+				// Marshal Objects using JSON
+				b, _ := json.Marshal(value)
+				output[v.Postgres.Name] = string(b)
+			} else if _, ok := maybe.Value().([]interface{}); ok {
+				// Marshal Arrays using JSON
+				b, _ := json.Marshal(value)
+				output[v.Postgres.Name] = string(b)
+			} else {
+				output[v.Postgres.Name] = value
+			}
 		}
-
-		output[v.Postgres.Name] = maybe.Value()
 	}
 	return output
 }

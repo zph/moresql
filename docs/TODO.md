@@ -29,6 +29,7 @@ DESIRED
 * [x] Setup formal worker pool along with overflow pool of workers
 * [x] add tracking mechanism for missing/broken tables beyond "log it into abyss".
 * [x] add error handling with rollbar/bugsnag/etc
+* [ ] Add persistance for oplog if desired by user via commandline flag
 
 
 SOMEDAYs

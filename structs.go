@@ -182,6 +182,7 @@ type TableColumn struct {
 	Schema   string
 	Table    string
 	Column   string
+	Type     string
 	Message  string
 	Solution string
 }
@@ -191,7 +192,7 @@ func (t *TableColumn) uniqueIndex() string {
 }
 
 func (t *TableColumn) createColumn() string {
-	return fmt.Sprintf(`ALTER TABLE %s.%s ADD %s %s NULL;`, t.Schema, t.Table, t.Column, ":type")
+	return fmt.Sprintf(`ALTER TABLE %s.%s ADD %s %s NULL;`, t.Schema, t.Table, normalizeDotNotationToPostgresNaming(t.Column), t.Type)
 }
 
 type hasUniqueIndex struct {
@@ -213,25 +214,15 @@ func (c *Commands) ValidateTablesAndColumns(config Config, pg *sqlx.DB) {
 	for _, db := range config {
 		for _, coll := range db.Collections {
 			table := coll.PgTable
+			// TODO: allow for non-public schema
 			schema := "public"
-			// Check that each table has _id as in a unique index
-			r := hasUniqueIndex{}
-			err := pg.Get(&r, q.GetTableColumnIndexMetadata(), table, "_id")
-			if err != nil {
-				log.Error(err)
-			}
-
-			if r.isValid() == false {
-				t := TableColumn{Schema: schema, Table: table, Column: "_id", Message: "Missing Unique Index on Column"}
-				t.Solution = t.uniqueIndex()
-				missingColumns = append(missingColumns, t)
-			}
-
 			// Check that all columns are present
 			rows, err := pg.NamedQuery(q.GetColumnsFromTable(), map[string]interface{}{"schema": schema, "table": table})
 			if err != nil {
 				log.Error(err)
 			}
+			// TODO: add validation that column types equal the types present in config
+
 			resultMap := make(map[string]string)
 			for rows.Next() {
 				var row ColumnResult
@@ -242,14 +233,29 @@ func (c *Commands) ValidateTablesAndColumns(config Config, pg *sqlx.DB) {
 				resultMap[row.Name] = row.Name
 			}
 
-			for k, _ := range coll.Fields {
+			for _, field := range coll.Fields {
+				k := field.Postgres.Name
 				_, ok := resultMap[k]
 				if ok != true {
-					t := TableColumn{Schema: schema, Table: table, Column: k, Message: "Missing Column"}
+					t := TableColumn{Schema: schema, Table: table, Column: k, Message: "Missing Column", Type: field.Postgres.Type}
 					t.Solution = t.createColumn()
 					missingColumns = append(missingColumns, t)
 				}
 			}
+
+			// Check that each table has _id as in a unique index
+			r := hasUniqueIndex{}
+			err = pg.Get(&r, q.GetTableColumnIndexMetadata(), table, "_id")
+			if err != nil {
+				log.Error(err)
+			}
+
+			if r.isValid() == false {
+				t := TableColumn{Schema: schema, Table: table, Column: "_id", Message: "Missing Unique Index on Column", Type: ""}
+				t.Solution = t.uniqueIndex()
+				missingColumns = append(missingColumns, t)
+			}
+
 		}
 	}
 	if len(missingColumns) != 0 {
@@ -358,6 +364,15 @@ func (o *Statement) postgresFields() []string {
 	var fields []string
 	for _, k := range o.sortedKeys() {
 		v := o.Collection.Fields[k]
+		fields = append(fields, v.Postgres.Name)
+	}
+	return fields
+}
+
+func (o *Statement) postgresFieldsQuoted() []string {
+	var fields []string
+	for _, k := range o.sortedKeys() {
+		v := o.Collection.Fields[k]
 		fields = append(fields, v.Postgres.nameQuoted())
 	}
 	return fields
@@ -365,7 +380,7 @@ func (o *Statement) postgresFields() []string {
 
 func (o *Statement) colonFields() []string {
 	var withColons []string
-	for _, f := range o.mongoFields() {
+	for _, f := range o.postgresFields() {
 		withColons = append(withColons, o.prefixColon(f))
 	}
 	return withColons
@@ -384,7 +399,8 @@ func (o *Statement) buildAssignment() string {
 	for _, k := range o.sortedKeys() {
 		v := o.Collection.Fields[k]
 		if k != "_id" {
-			set = append(set, fmt.Sprintf(`%s = :%s`, v.Postgres.nameQuoted(), v.Mongo.Name))
+			// Accesses data that has already been sanitized into postgres naming
+			set = append(set, fmt.Sprintf(`%s = :%s`, v.Postgres.nameQuoted(), v.Postgres.Name))
 		}
 	}
 	return strings.Join(set, ", ")
@@ -417,7 +433,7 @@ func (o *Statement) BuildUpsert() string {
 }
 
 func (o *Statement) BuildInsert() string {
-	insertInto := fmt.Sprintf("INSERT INTO %s (%s)", o.Collection.pgTableQuoted(), strings.Join(o.postgresFields(), ", "))
+	insertInto := fmt.Sprintf("INSERT INTO %s (%s)", o.Collection.pgTableQuoted(), strings.Join(o.postgresFieldsQuoted(), ", "))
 	values := fmt.Sprintf("VALUES (%s)", o.joinedPlaceholders())
 	output := o.joinLines(insertInto, values)
 	return output
