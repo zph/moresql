@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"regexp"
 
 	"strings"
 
@@ -51,11 +52,17 @@ func LoadConfig(path string) Config {
 }
 
 func mongoToPostgresTypeConversion(mongoType string) string {
+	// Coerce "id" bsonId types into text since Postgres doesn't have type for BSONID
 	switch strings.ToLower(mongoType) {
 	case "id":
 		return "text"
 	}
 	return mongoType
+}
+
+func normalizeDotNotationToPostgresNaming(key string) string {
+	re := regexp.MustCompile("\\.")
+	return re.ReplaceAllString(key, "_")
 }
 
 func JsonToFields(s string) (Fields, error) {
@@ -72,7 +79,7 @@ func JsonToFields(s string) (Fields, error) {
 			// Convert shorthand to longhand Field
 			f := Field{
 				Mongo{k, str},
-				Postgres{k, mongoToPostgresTypeConversion(str)},
+				Postgres{normalizeDotNotationToPostgresNaming(k), mongoToPostgresTypeConversion(str)},
 			}
 			result[k] = f
 		} else {

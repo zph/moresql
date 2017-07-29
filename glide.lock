@@ -1,5 +1,5 @@
-hash: cb4fec5ae3935dc94a5a2d6c446d0196001a33ca025e9a4e0c836ddd09602b37
-updated: 2017-03-15T11:09:18.0426687-07:00
+hash: 32c5470c7929c911f43a9708133411688c7d0beccbb29ca309e3b396e4827f99
+updated: 2017-07-16T16:05:44.1938839-07:00
 imports:
 - name: github.com/heroku/rollrus
   version: d20e35b8f9139110607856dfedda27df7b598c08
@@ -27,6 +27,8 @@ imports:
   version: ca202b60b2601abe3e2e6a948a12b1b856badf6c
 - name: github.com/thejerf/suture
   version: fe1c0d795ff7a7e54fc54ef6afb36ee0adf0c276
+- name: github.com/tidwall/gjson
+  version: c784c417818f59d6597274642d8ac1d09efc9b01
 - name: golang.org/x/sys
   version: d75a52659825e75fff6158388dddc6a5b04f9ba5
   subpackages:

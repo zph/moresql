@@ -20,8 +20,7 @@ TO DEPLOY and RELEASE
 
 DESIRED
 ==
-* [ ] Use dot notation for config description of nested maps, ie allow for `get_in("outerkey", "innerkey")` as `outerkey.innerkey` by using https://github.com/tidwall/gjson
-* [ ] Improve library testing (unit and integration/system). Potentially using docker for full trip integration tests.
+* [x] Use dot notation for config description of nested maps, ie allow for `get_in("outerkey", "innerkey")` as `outerkey.innerkey` by using https://github.com/tidwall/gjson
 * [x] Refactor tail to have a producer/consumer as Read/Write
 * [x] Setup https://github.com/thejerf/suture wrappers on components
 * [x] Add testing and refactor to make each bit fairly decoupled
@@ -29,6 +28,7 @@ DESIRED
 * [x] Setup formal worker pool along with overflow pool of workers
 * [x] add tracking mechanism for missing/broken tables beyond "log it into abyss".
 * [x] add error handling with rollbar/bugsnag/etc
+* [ ] Improve library testing (unit and integration/system). Potentially using docker for full trip integration tests.
 
 
 SOMEDAYs
@@ -44,3 +44,4 @@ SOMEDAYs
  * [ ] Writers should fit the interface of accepting a pointer to tables struct and the channel of incoming operations
  * [ ] All of https://github.com/zph/moresql/blob/master/full_sync.go#L129-L136 should be inside the writer function as it will differ by output sink.
 * [ ] Support nested fetching ala `user.name` to extract 2 levels deep
+* [ ] Add persistance for oplog if desired by user via commandline flag

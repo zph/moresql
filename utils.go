@@ -9,10 +9,10 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/tidwall/gjson"
 
 	rollus "github.com/heroku/rollrus"
 	"github.com/rwynn/gtm"
-	"gopkg.in/mgo.v2/bson"
 )
 
 func FetchEnvsAndFlags() (e Env) {
@@ -116,47 +116,47 @@ func isActionableOperation(filters ...func() bool) bool {
 }
 
 // SanitizeData handles type inconsistency between mongo and pg
+// and flattens the data from a potentially nested data struct
+// into a flattened struct using gjson.
 func SanitizeData(pgFields Fields, op *gtm.Op) map[string]interface{} {
 	if !IsInsertUpdateDelete(op) {
 		return make(map[string]interface{})
 	}
 
-	newData := op.Data
+	newData, err := json.Marshal(op.Data)
+	parsed := gjson.ParseBytes(newData)
+	output := make(map[string]interface{})
+	if err != nil {
+		log.Errorf("Failed to marshal op.Data into json %s", err.Error())
+	}
 	// Normalize data map to always include the Id with conversion
 	if op.Id != nil {
-		newData["_id"] = op.Id
+		output["_id"] = op.Id
 	}
+
 	for k, v := range pgFields {
-		// Guard against nil values sneaking into dataset
-		if v.Mongo.Type == "id" && newData[k] != nil {
-			newData[k] = newData[k].(bson.ObjectId).Hex()
-		} else if sym, ok := newData[k].(bson.ObjectId); ok {
-			newData[k] = sym.Hex()
-		} else if sym, ok := newData[k].(bson.Symbol); ok {
-			// Handle bson.Symbols which are unknown types for SQL driver
-			newData[k] = string(sym)
-		} else if sym, ok := newData[k].(map[string]interface{}); ok {
-			// Convert hashes to json strings
-			js, err := json.Marshal(sym)
-			if err == nil {
-				newData[k] = js
-			}
-		} else if sym, ok := newData[k].([]interface{}); ok {
-			// Convert array objects to json strings
-			js, err := json.Marshal(sym)
-			if err == nil {
-				newData[k] = js
-			}
-		} else if v.Mongo.Type == "object" {
-			// Convert objects to json strings
-			// TODO: deprecate this since we type check elsewhere
-			js, err := json.Marshal(newData[k])
-			if err == nil {
-				newData[k] = js
+		// Dot notation extraction
+		maybe := parsed.Get(k)
+		if !maybe.Exists() {
+			// Fill with nils to ensure that NamedExec works
+			output[v.Postgres.Name] = nil
+		} else {
+			// Sanitize the Value field when it's a map
+			value := maybe.Value()
+			if _, ok := maybe.Value().(map[string]interface{}); ok {
+				// Marshal Objects using JSON
+				b, _ := json.Marshal(value)
+				output[v.Postgres.Name] = string(b)
+			} else if _, ok := maybe.Value().([]interface{}); ok {
+				// Marshal Arrays using JSON
+				b, _ := json.Marshal(value)
+				output[v.Postgres.Name] = string(b)
+			} else {
+				output[v.Postgres.Name] = value
 			}
 		}
 	}
-	return newData
+	return output
 }
 
 func createFanKey(db string, collection string) string {

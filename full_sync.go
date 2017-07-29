@@ -96,7 +96,11 @@ ForStatement:
 				"collection": e.Collection,
 				"id":         op.Id,
 			}).Info("Syncing record")
+			log.Debug("SQL Command ", s)
+			log.Debug("Data ", op.Data)
+			log.Debug("Executing statement: ", s)
 			_, err := z.Output.NamedExec(s, op.Data)
+			log.Debug("Statement executed successfully")
 			z.insertCounter.Incr(1)
 			if err != nil {
 				log.WithFields(log.Fields{
@@ -140,7 +144,9 @@ func NewSynchronizer(config Config, pg *sqlx.DB, mongo *mgo.Session) FullSyncer 
 func FullSync(config Config, pg *sqlx.DB, mongo *mgo.Session) {
 	sync := NewSynchronizer(config, pg, mongo)
 	wg.Add(2)
+	log.Debug("Starting writer")
 	go sync.Write()
+	log.Debug("Starting reader")
 	go sync.Read()
 
 	wg.Wait()

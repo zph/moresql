@@ -129,10 +129,16 @@ The generated file `moresql.json` will be in place ready for use.
 
 These features are part of mosql but not implemented in MoreSQL. PRs welcome.
 
-* Dot Notation for nested structures
 * extra_props field for spare data
-* Automatic creation of tables/columns
+* Automatic creation of tables/columns (we require explicit actions from users after providing guidance)
 
+## Dot notation
+
+We support dot notation for extracting nested objects from Mongo.
+
+`user.address` will perform a `(get_in map [:user :address])` type nested fetch.
+
+See gjson project for full syntax details: https://github.com/tidwall/gjson#path-syntax
 ## Performance
 
 During benchmarking when moresql is asked to replay existing events from oplog we've seen the following performance with the following configurations:
