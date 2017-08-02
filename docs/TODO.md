@@ -29,6 +29,10 @@ DESIRED
 * [x] add tracking mechanism for missing/broken tables beyond "log it into abyss".
 * [x] add error handling with rollbar/bugsnag/etc
 * [ ] Improve library testing (unit and integration/system). Potentially using docker for full trip integration tests.
+* [ ] Add validation for the moresql_metadata table
+* [ ] Add configuration option to use configurable schema for metadata table and I/U/D
+* [ ] Add `full-sync` option to only re-sync specific table
+* [ ] Fix logging to include TIMESTAMP when deployed outside Heroku
 
 
 SOMEDAYs
@@ -36,6 +40,7 @@ SOMEDAYs
 * [ ] Setup system tests (https://www.elastic.co/blog/code-coverage-for-your-golang-system-tests)
 * [ ] Add basic auth and SSL for endpoint of expvarmon
 * [ ] add signal handling for SIGTERM to flush existing content in buffers then exit
+* [ ] Add way to reload configuration without dropping events?
 * [ ] add expvar.Publish for backlog of all events waiting to process in `fan`
 * [ ] time operates on int64, suggest that gtm.ParseTimestamp do likewise for interop
 * [ ] Make library generic with regard to event destination. Could be expanded out as a bridge Mongo->{Kinesis,Kafka,Postgres,MySQL}
@@ -43,5 +48,4 @@ SOMEDAYs
  * [ ] Make the writer function configurable with postgres as the default
  * [ ] Writers should fit the interface of accepting a pointer to tables struct and the channel of incoming operations
  * [ ] All of https://github.com/zph/moresql/blob/master/full_sync.go#L129-L136 should be inside the writer function as it will differ by output sink.
-* [ ] Support nested fetching ala `user.name` to extract 2 levels deep
 * [ ] Add persistance for oplog if desired by user via commandline flag
