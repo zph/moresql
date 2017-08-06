@@ -114,6 +114,7 @@ func (s *MySuite) TestConfigParsingFull(c *C) {
       "campaigns": {
         "name": "campaigns",
         "pg_table": "campaigns",
+        "pg_schema": "moresql",
         "fields": {
           "_id": "id",
           "created_at": "text"
@@ -124,7 +125,7 @@ func (s *MySuite) TestConfigParsingFull(c *C) {
 }
           `
 
-	expected1 := m.Config{"company-production": m.DB{Collections: m.Collections{"accounts": m.Collection{Name: "users", PgTable: "users", Fields: m.Fields{"_id": m.Field{Mongo: m.Mongo{Name: "_id", Type: "id"}, Postgres: m.Postgres{Name: "_id", Type: "text"}}, "bio": m.Field{Mongo: m.Mongo{Name: "bio", Type: "text"}, Postgres: m.Postgres{Name: "bio", Type: "text"}}}}, "campaigns": m.Collection{Name: "campaigns", PgTable: "campaigns", Fields: m.Fields{"_id": m.Field{Mongo: m.Mongo{Name: "_id", Type: "id"}, Postgres: m.Postgres{Name: "_id", Type: "text"}}, "created_at": m.Field{Mongo: m.Mongo{Name: "created_at", Type: "text"}, Postgres: m.Postgres{Name: "created_at", Type: "text"}}}}}}}
+	expected1 := m.Config{"company-production": m.DB{Collections: m.Collections{"accounts": m.Collection{Name: "users", PgTable: "users", PgSchema: "public", Fields: m.Fields{"_id": m.Field{Mongo: m.Mongo{Name: "_id", Type: "id"}, Postgres: m.Postgres{Name: "_id", Type: "text"}}, "bio": m.Field{Mongo: m.Mongo{Name: "bio", Type: "text"}, Postgres: m.Postgres{Name: "bio", Type: "text"}}}}, "campaigns": m.Collection{Name: "campaigns", PgTable: "campaigns", PgSchema: "moresql", Fields: m.Fields{"_id": m.Field{Mongo: m.Mongo{Name: "_id", Type: "id"}, Postgres: m.Postgres{Name: "_id", Type: "text"}}, "created_at": m.Field{Mongo: m.Mongo{Name: "created_at", Type: "text"}, Postgres: m.Postgres{Name: "created_at", Type: "text"}}}}}}}
 
 	shorthand := `
 {
@@ -141,6 +142,7 @@ func (s *MySuite) TestConfigParsingFull(c *C) {
       "campaigns": {
         "name": "campaigns",
         "pg_table": "campaigns",
+        "pg_schema": "moresql",
         "fields": {
           "_id": "id",
           "created_at": "text"

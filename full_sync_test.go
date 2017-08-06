@@ -30,7 +30,7 @@ func (s *MySuite) TestBuildOpFromMongo(c *C) {
 	result["name"] = "Alice"
 	db := m.DBResult{"user", "user", result}
 	fields := BuildFields("_id", "name", "age")
-	coll := m.Collection{"user", "user", fields}
+	coll := m.Collection{"user", "user", "moresql_schema", fields}
 	op := m.BuildOpFromMgo([]string{"_id", "name", "age"}, db, coll)
 
 	c.Check(op.Id, Equals, id)
