@@ -409,10 +409,8 @@ func (t *Tailer) processOp(op *gtm.Op, workerType string) {
 		logFn(s, err)
 	case op.IsDelete() && t.env.allowDeletes:
 		t.counters.delete.Incr(1)
-		// Deletes have empty op.Data
-		// We patch in the op.Id instead for consistent data
-		// Bad idea? Should we always rely on op.ID? instead?
-		s, err := t.pg.NamedExec(o.BuildDelete(), data)
+		deleteSQL := o.BuildDelete()
+		s, err := t.pg.NamedExec(deleteSQL, data)
 		logFn(s, err)
 	}
 }
