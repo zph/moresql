@@ -129,10 +129,6 @@ func SanitizeData(pgFields Fields, op *gtm.Op) map[string]interface{} {
 	if err != nil {
 		log.Errorf("Failed to marshal op.Data into json %s", err.Error())
 	}
-	// Normalize data map to always include the Id with conversion
-	if op.Id != nil {
-		output["_id"] = op.Id
-	}
 
 	for k, v := range pgFields {
 		// Dot notation extraction
@@ -156,6 +152,15 @@ func SanitizeData(pgFields Fields, op *gtm.Op) map[string]interface{} {
 			}
 		}
 	}
+
+	// Normalize data map to always include the Id with conversion
+	// Required for delete actions that have a missing _id field in
+	// op.Data. Must occur after the preceeding iterative block
+	// in order to avoid being overwritten with nil.
+	if op.Id != nil {
+		output["_id"] = op.Id
+	}
+
 	return output
 }
 
