@@ -6,11 +6,11 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	mgo "github.com/globalsign/mgo"
 	"github.com/jmoiron/sqlx"
 	"github.com/orcaman/concurrent-map"
 	"github.com/paulbellamy/ratecounter"
 	"github.com/rwynn/gtm"
-	mgo "gopkg.in/mgo.v2"
 )
 
 type Syncer interface {

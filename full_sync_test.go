@@ -1,9 +1,9 @@
 package moresql_test
 
 import (
+	"github.com/globalsign/mgo/bson"
 	m "github.com/zph/moresql"
 	. "gopkg.in/check.v1"
-	"gopkg.in/mgo.v2/bson"
 )
 
 func BuildFields(sx ...string) m.Fields {

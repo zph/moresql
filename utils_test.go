@@ -1,10 +1,10 @@
 package moresql_test
 
 import (
+	"github.com/globalsign/mgo/bson"
 	"github.com/rwynn/gtm"
 	m "github.com/zph/moresql"
 	. "gopkg.in/check.v1"
-	"gopkg.in/mgo.v2/bson"
 )
 
 func (s *MySuite) TestSanitizeData(c *C) {

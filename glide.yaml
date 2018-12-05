@@ -32,3 +32,8 @@ import:
 - package: github.com/tidwall/gjson
 - package: github.com/globalsign/mgo
   version: r2018.06.15
+  subpackages:
+  - bson
+  - internal/json
+  - internal/sasl
+  - internal/scram

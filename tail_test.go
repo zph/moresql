@@ -3,9 +3,9 @@ package moresql_test
 import (
 	"time"
 
+	bson "github.com/globalsign/mgo/bson"
 	m "github.com/zph/moresql"
 	. "gopkg.in/check.v1"
-	bson "gopkg.in/mgo.v2/bson"
 )
 
 func (s *MySuite) TestTimestamp(c *C) {

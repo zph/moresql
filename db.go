@@ -12,10 +12,10 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	mgo "github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	mgo "gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 )
 
 func GetMongoConnection(env Env) (session *mgo.Session) {
