@@ -11,6 +11,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/tidwall/gjson"
 
+	bson "github.com/globalsign/mgo/bson"
 	rollus "github.com/heroku/rollrus"
 	"github.com/rwynn/gtm"
 )
@@ -147,6 +148,10 @@ func SanitizeData(pgFields Fields, op *gtm.Op) map[string]interface{} {
 				// Marshal Arrays using JSON
 				b, _ := json.Marshal(value)
 				output[v.Postgres.Name] = string(b)
+			} else if _, ok := value.(bson.ObjectId); ok {
+				// Coerce ObjectId because they're unable to be default coerced
+				// to UTF8 strings in PG as of Mongo 3.4
+				output[v.Postgres.Name] = value.(bson.ObjectId).Hex()
 			} else {
 				output[v.Postgres.Name] = value
 			}
