@@ -1,8 +1,13 @@
-hash: c1a952c8537d05c73b23b99a61dabebf5273e612f3ca3eb5ed995e0c0973c82a
-updated: 2018-12-05T18:06:08.338954-05:00
+hash: b437e9ed53e1302500c881ed6b563875f2c5075c617da765b0a1cb09e68f9945
+updated: 2018-12-05T18:22:42.609027-05:00
 imports:
 - name: github.com/globalsign/mgo
   version: 113d3961e7311526535a1ef7042196563d442761
+  subpackages:
+  - bson
+  - internal/json
+  - internal/sasl
+  - internal/scram
 - name: github.com/heroku/rollrus
   version: d20e35b8f9139110607856dfedda27df7b598c08
 - name: github.com/jmoiron/sqlx
@@ -20,7 +25,7 @@ imports:
 - name: github.com/pkg/errors
   version: bfd5150e4e41705ded2129ec33379de1cb90b513
 - name: github.com/rwynn/gtm
-  version: 22eec696103260d143b92a08ef06b45173c072a2
+  version: 63fca2f4249a9d6b4be765c0aec5394facaf0973
 - name: github.com/serialx/hashring
   version: 8d1c83b82963c5644493764c3b589c8bfff8090b
 - name: github.com/Sirupsen/logrus
