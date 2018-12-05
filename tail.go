@@ -276,7 +276,7 @@ func (t *Tailer) Checkpoints() {
 				latest, ok := t.checkpoint.Get("latest")
 				if ok && latest != nil {
 					t.SaveCheckpoint(latest.(MoresqlMetadata))
-					log.Debug("Saved checkpointing %+v", latest.(MoresqlMetadata))
+					log.Debugf("Saved checkpointing %+v", latest.(MoresqlMetadata))
 				}
 			}
 		}

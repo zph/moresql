@@ -8,7 +8,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	mgo "github.com/globalsign/mgo"
 	"github.com/jmoiron/sqlx"
-	"github.com/orcaman/concurrent-map"
+	cmap "github.com/orcaman/concurrent-map"
 	"github.com/paulbellamy/ratecounter"
 	"github.com/rwynn/gtm"
 )
@@ -44,7 +44,7 @@ func (z *FullSyncer) Read() {
 				result = make(map[string]interface{})
 			}
 			if err := iter.Close(); err != nil {
-				log.Error("Unable to close iterator: %s", err)
+				log.Errorf("Unable to close iterator: %s", err)
 			}
 		}
 	}

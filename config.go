@@ -28,7 +28,7 @@ func LoadConfigString(s string) (Config, error) {
 			var fields Fields
 			fields, err = JsonToFields(string(v.Fields))
 			if err != nil {
-				log.Warnf("JSON Config decoding error: ", err)
+				log.Warnf("JSON Config decoding error: %s", err)
 				return nil, fmt.Errorf("Unable to decode %s", err)
 			}
 			coll.Fields = fields
