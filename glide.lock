@@ -1,6 +1,8 @@
-hash: 32c5470c7929c911f43a9708133411688c7d0beccbb29ca309e3b396e4827f99
-updated: 2017-07-16T16:05:44.1938839-07:00
+hash: c1a952c8537d05c73b23b99a61dabebf5273e612f3ca3eb5ed995e0c0973c82a
+updated: 2018-12-05T18:06:08.338954-05:00
 imports:
+- name: github.com/globalsign/mgo
+  version: 113d3961e7311526535a1ef7042196563d442761
 - name: github.com/heroku/rollrus
   version: d20e35b8f9139110607856dfedda27df7b598c08
 - name: github.com/jmoiron/sqlx
@@ -28,7 +30,9 @@ imports:
 - name: github.com/thejerf/suture
   version: fe1c0d795ff7a7e54fc54ef6afb36ee0adf0c276
 - name: github.com/tidwall/gjson
-  version: c784c417818f59d6597274642d8ac1d09efc9b01
+  version: 081192fa2e471ddff3ec98a3cc04fecfd031ed57
+- name: github.com/tidwall/match
+  version: 1731857f09b1f38450e2c12409748407822dc6be
 - name: golang.org/x/sys
   version: d75a52659825e75fff6158388dddc6a5b04f9ba5
   subpackages:
