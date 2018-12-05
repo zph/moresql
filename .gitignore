@@ -8,3 +8,4 @@ moresql-*
 moresql
 dist/
 site/
+vendor/
