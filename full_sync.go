@@ -105,6 +105,8 @@ ForStatement:
 			if err != nil {
 				log.WithFields(log.Fields{
 					"description": err,
+					"id":          op.Id,
+					"data":        op.Data,
 				}).Error("Error")
 				if err.Error() == fmt.Sprintf(`pq: relation "%s" does not exist`, e.Collection) {
 					tables.Set(key, false)
