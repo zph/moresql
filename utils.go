@@ -163,7 +163,11 @@ func SanitizeData(pgFields Fields, op *gtm.Op) map[string]interface{} {
 	// op.Data. Must occur after the preceeding iterative block
 	// in order to avoid being overwritten with nil.
 	if op.Id != nil {
-		output["_id"] = op.Id
+		if _, ok := op.Id.(bson.ObjectId); ok {
+			output["_id"] = op.Id.(bson.ObjectId).Hex()
+		} else {
+			output["_id"] = op.Id
+		}
 	}
 
 	return output
