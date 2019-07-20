@@ -20,7 +20,7 @@ build:
 
 archives:
   - id:  "{{.BinaryName}}_{{.Os}}_{{.Arch}}"
-    format: zip
+    format: tar.gz
 
 #   replacements:
 #     darwin: darwin
