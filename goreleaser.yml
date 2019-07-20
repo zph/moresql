@@ -18,9 +18,10 @@ build:
     - darwin
     - linux
 
-archive:
-  name_template: "{{.BinaryName}}_{{.Os}}_{{.Arch}}"
+archives:
+  - id:  "{{.BinaryName}}_{{.Os}}_{{.Arch}}"
+    format: zip
 
-  replacements:
-    darwin: darwin
-    linux: linux
+#   replacements:
+#     darwin: darwin
+#     linux: linux
