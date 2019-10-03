@@ -15,6 +15,7 @@ require (
 	github.com/stvp/roll v0.0.0-20170116223130-ca202b60b260
 	github.com/thejerf/suture v2.0.0+incompatible
 	github.com/tidwall/gjson v0.0.0-20170526023918-c784c417818f
+	github.com/tidwall/match v1.0.1 // indirect
 	golang.org/x/sys v0.0.0-20161214190518-d75a52659825
 	gopkg.in/check.v1 v1.0.0-20161208181325-20d25e280405
 	gopkg.in/mgo.v2 v2.0.0-20160818020120-3f83fa500528
