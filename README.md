@@ -10,6 +10,10 @@ MoreSQL streams changes occuring in Mongo database into a Postgres db. MoreSQL t
 
 MoreSQL gives you a chance to use more sql and less mongo query language.
 
+Project maturity: Moresql has 3 years of running in production for 2+ companies
+on their business critical workloads for core systems. It is a stable project
+with low maintenance and high performance.
+
 ## QuickStart
 ### Introduction
 
