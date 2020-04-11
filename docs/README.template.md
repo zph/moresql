@@ -20,18 +20,18 @@ moresql.json configuration structure
 
 ```
 {
-   "$DB_NAME": {
+   "DB_NAME": {
       "collections": {
-         $COLLECTION_NAME: {
-            "name": "$COLLECTION_NAME",
-            "pg_table": "$PG_TABLE_NAME",
+         "COLLECTION_NAME": {
+            "name": "COLLECTION_NAME",
+            "pg_table": "PG_TABLE_NAME",
             "fields": {
                ...
             }
          },
-         $COLLECTION_NAME2: {
-            "name": "$COLLECTION_NAME2",
-            "pg_table": "$PG_TABLE_NAME2",
+         "COLLECTION_NAME2": {
+            "name": "COLLECTION_NAME2",
+            "pg_table": "PG_TABLE_NAME2",
             "fields": {
                ...
             }
