@@ -118,30 +118,17 @@ https://zph.github.io/moresql/
 
 [![GoDoc](https://godoc.org/github.com/zph/moresql?status.svg)](https://godoc.org/github.com/zph/moresql)
 
-## QuickStart
-
-### Introduction
-
-* Create metadata table
-* Setup moresql.json
-* Setup any recipient tables in postgres
-  * Validate with `./moresql -validate`
-* Deploy binary to server
-* Configure Environmental variables
-* Run `./moresql -tail` to start transmitting novelty
-* Run `./moresql -full-sync` to populate the database
-
-### Table Setup
+## Table Setup
 
 ```sql
 $SQL_OUTPUT
 ```
 
-### Building Binary
+## Building Binary
 
 Compile binary using `make build`
 
-### Commandline Arguments / Usage
+## Commandline Arguments / Usage
 
 Execute `./moresql --help`
 
