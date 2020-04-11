@@ -14,6 +14,74 @@ MoreSQL gives you a chance to use more sql and less mongo query language.
 
 ## Basic Use
 
+### Configuration
+
+moresql.json configuration structure
+
+```
+{
+   "$DB_NAME": {
+      "collections": {
+         $COLLECTION_NAME: {
+            "name": "$COLLECTION_NAME",
+            "pg_table": "$PG_TABLE_NAME",
+            "fields": {
+               ...
+            }
+         },
+         $COLLECTION_NAME2: {
+            "name": "$COLLECTION_NAME2",
+            "pg_table": "$PG_TABLE_NAME2",
+            "fields": {
+               ...
+            }
+         }
+      }
+   }
+}
+```
+
+Field attributes have a simple and complex format.
+
+The simple format is where you want to use the mongo field name as the postgres column name.
+In this format fields take the mongo field name (as key) and its postgres type (as value).
+The value can be any valid postgres type (https://www.postgresql.org/docs/current/datatype.html)
+```
+            "fields": {
+               "_id": "TEXT",
+               "addresses": "JSONB",
+            }
+```
+
+The complex format allows for renaming fields, extracting nested keys and some advanced operations.
+See gjson project for full syntax details of dot notation: https://github.com/tidwall/gjson#path-syntax
+```
+            "fields": {
+               "_id": "TEXT",
+               // preferences is an field name that has an object in it. The object has a key of unsubscribe.
+               // The following will promote this nested unsubscribe to a top level value as a postgres column
+               "preferences.unsubscribe": {
+                  "Postgres": {"Name": "is_unsubscribed", "Type": "BOOLEAN"},
+                  "Mongo": {"Name": "preferences.unsubscribe", "Type": "object"}
+               },
+               // This extraction will look in books field with [{product_id: 1}, {product_id: 2}]
+               // And for each object in there, fetch the product_id and combine it into an array of product ids [1, 2]
+               // That value will be inserted into a postgres column called `book_ids`.
+               "books.#.product_id": {
+                  "Postgres": {
+                  "Name": "book_ids",
+                  "Type": "JSONB"
+                  },
+                  "Mongo": {
+                  "Name": "books.#.product_id",
+                  "Type": "object"
+                  }
+               },
+            }
+```
+
+See `examples/moresql.json` for a full configuration
+
 ### Tail
 
 `./moresql -tail -config-file=moresql.json`
