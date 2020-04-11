@@ -10,10 +10,22 @@ MoreSQL streams changes occuring in Mongo database into a Postgres db. MoreSQL t
 
 MoreSQL gives you a chance to use more sql and less mongo query language.
 
+## QuickStart
+### Introduction
+
+* Create metadata table
+* Setup moresql.json (see Configuration)
+* Setup any recipient tables in postgres
+  * Validate with `./moresql -validate`
+* Deploy moresql binary to server from Github Releases
+* Configure Environmental variables
+* Run `./moresql -tail` to start transmitting novelty
+* Run `./moresql -full-sync` to populate the database
+* Write more sql ;D
+
 # Usage
 
 ## Basic Use
-
 ### Configuration
 
 moresql.json configuration structure
@@ -243,13 +255,7 @@ As of writing, any BsonID/ObjectId should be noted as `id` type in `Fields.Mongo
 
 ## Converting from MoSQL
 
-Run the ./bin/convert_config_from_mosql_to_moresql script in a folder with `collections.yml`
-
-```
-ruby ./bin/convert_config_from_mosql_to_moresql collection.yml
-```
-
-The generated file `moresql.json` will be in place ready for use.
+Read through configuration structure and convert your collections.yml into the new json format.
 
 ## Unsupported Features
 
